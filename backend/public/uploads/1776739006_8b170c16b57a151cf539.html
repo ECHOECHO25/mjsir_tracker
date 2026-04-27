@@ -1,0 +1,227 @@
+
+<html>
+<head>
+<meta charset="utf-8" />
+<title>REPO Research Monitoring System Documentation</title>
+<style>
+  body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; line-height: 1.4; margin: 1in; }
+  h1, h2 { color: #111827; }
+  h2 { margin-top: 18px; }
+  code { font-family: Consolas, monospace; font-size: 10pt; }
+</style>
+</head>
+<body>
+<h1>REPO Research Monitoring System Documentation</h1>
+
+      <h2>1. System Overview</h2>
+      <p>This project is a full-stack <strong>Research Extension Publication Office (REPO) Research Monitoring System</strong> for Benguet State University.</p>
+      <p>It is used to:</p>
+      <ul>
+        <li>Manage publication records</li>
+        <li>Track faculty research metrics (citations, H-index, i10-index)</li>
+        <li>Match publication authors to faculty profiles</li>
+        <li>Generate dashboard KPIs and trend analytics</li>
+        <li>Manage acknowledgements records</li>
+        <li>Manage users and login sessions</li>
+        <li>Record audit logs for key actions</li>
+      </ul>
+
+      <h2>2. Technology Stack</h2>
+      <ul>
+        <li>Frontend: Vue 3 + Vite + Tailwind + Axios + Chart.js + ExcelJS</li>
+        <li>Backend: PHP 8.1+ + CodeIgniter 4 (REST APIs)</li>
+        <li>Database: MySQL (MySQLi driver)</li>
+        <li>Auth: Session-based authentication with role checks</li>
+      </ul>
+
+      <h2>3. Repository Structure</h2>
+      <ul>
+        <li><code>frontend/</code>: Vue SPA</li>
+        <li><code>backend/</code>: CodeIgniter API and DB migrations</li>
+      </ul>
+      <p>Key backend folders:</p>
+      <ul>
+        <li><code>backend/app/Controllers/Api</code>: REST controllers</li>
+        <li><code>backend/app/Models</code>: DB models</li>
+        <li><code>backend/app/Database/Migrations</code>: schema definitions</li>
+        <li><code>backend/app/Libraries/AuditLogger.php</code>: audit helper</li>
+      </ul>
+      <p>Key frontend folders:</p>
+      <ul>
+        <li><code>frontend/src/views</code>: page-level modules (Dashboard, Publications, Faculty, etc.)</li>
+        <li><code>frontend/src/composables/useAuth.js</code>: auth state helper</li>
+        <li><code>frontend/src/main.js</code>: active route definitions and route guards</li>
+      </ul>
+
+      <h2>4. Core Modules</h2>
+      <ul>
+        <li>Dashboard: KPIs, yearly trends, college/type analytics, activity snapshots</li>
+        <li>Publications: CRUD, filtering, pagination, bulk import, duplicate detection</li>
+        <li>Faculty: CRUD, filtering (including masterlist-linked fields), top rankings</li>
+        <li>Author Matches: pending/confirmed publication-to-faculty links</li>
+        <li>Acknowledgements: CRUD with item lines (volumes/copies/remarks)</li>
+        <li>Audit Logs: paginated action log with search</li>
+        <li>Users: admin-managed user creation/status updates</li>
+      </ul>
+
+      <h2>5. Frontend Routes (Active)</h2>
+      <p>Defined in <code>frontend/src/main.js</code>:</p>
+      <ul>
+        <li><code>/login</code></li>
+        <li><code>/dashboard</code></li>
+        <li><code>/publications</code></li>
+        <li><code>/faculty</code></li>
+        <li><code>/author-matches</code> (requires auth)</li>
+        <li><code>/audit-logs</code> (requires auth)</li>
+        <li><code>/acknowledgements</code></li>
+        <li><code>/add-user</code> (requires auth)</li>
+      </ul>
+
+      <h2>6. API Base and CORS</h2>
+      <ul>
+        <li>Frontend API base: <code>VITE_API_URL</code> (fallback: <code>http://localhost:8080/api</code>)</li>
+        <li>Backend allowed frontend origin: <code>FRONTEND_ORIGIN</code> (fallback: <code>http://localhost:5173</code>)</li>
+        <li>Credentials are enabled (<code>withCredentials=true</code>) for session cookies.</li>
+      </ul>
+
+      <h2>7. Authentication and Authorization</h2>
+      <p>Auth endpoints:</p>
+      <ul>
+        <li><code>POST /api/auth/login</code></li>
+        <li><code>GET /api/auth/me</code></li>
+        <li><code>POST /api/auth/logout</code></li>
+      </ul>
+      <p>Behavior:</p>
+      <ul>
+        <li>Session stores: <code>user_id</code>, <code>username</code>, <code>role</code>, login timestamps</li>
+        <li>Login throttling: lockout for 60 seconds after 5 failed attempts</li>
+        <li>Frontend route guard checks <code>/auth/me</code> for protected pages</li>
+        <li><code>UsersController</code> requires <code>admin</code> for user create/list/update</li>
+      </ul>
+
+      <h2>8. API Endpoints Summary</h2>
+      <p><strong>Dashboard</strong></p>
+      <ul>
+        <li><code>GET /api/dashboard</code></li>
+        <li><code>GET /api/dashboard/publications-summary</code></li>
+        <li><code>GET /api/dashboard/faculty-metrics</code></li>
+        <li><code>GET /api/dashboard/activity?days=30</code></li>
+      </ul>
+
+      <p><strong>Publications</strong></p>
+      <ul>
+        <li><code>GET /api/publications</code></li>
+        <li><code>GET /api/publications/{id}</code></li>
+        <li><code>GET /api/publications/recent?limit=10</code></li>
+        <li><code>GET /api/publications/by-year/{year}</code></li>
+        <li><code>POST /api/publications</code></li>
+        <li><code>PUT /api/publications/{id}</code></li>
+        <li><code>DELETE /api/publications/{id}</code></li>
+        <li><code>POST /api/publications/bulk-import</code></li>
+      </ul>
+
+      <p><strong>Publication Author Links</strong></p>
+      <ul>
+        <li><code>GET /api/publication-author-links/pending</code></li>
+        <li><code>GET /api/publication-author-links/publication/{publicationId}</code></li>
+        <li><code>POST /api/publication-author-links</code></li>
+        <li><code>PUT /api/publication-author-links/{id}</code></li>
+      </ul>
+
+      <p><strong>Faculty</strong></p>
+      <ul>
+        <li><code>GET /api/faculty</code></li>
+        <li><code>GET /api/faculty/{id}</code></li>
+        <li><code>POST /api/faculty</code></li>
+        <li><code>PUT /api/faculty/{id}</code></li>
+        <li><code>DELETE /api/faculty/{id}</code></li>
+        <li><code>GET /api/faculty/top-citations</code></li>
+        <li><code>GET /api/faculty/top-hindex</code></li>
+      </ul>
+
+      <p><strong>Acknowledgements</strong></p>
+      <ul>
+        <li><code>GET /api/acknowledgements</code></li>
+        <li><code>GET /api/acknowledgements/{id}</code></li>
+        <li><code>POST /api/acknowledgements</code></li>
+        <li><code>PUT /api/acknowledgements/{id}</code></li>
+        <li><code>DELETE /api/acknowledgements/{id}</code></li>
+      </ul>
+
+      <p><strong>Audit Logs</strong></p>
+      <ul>
+        <li><code>GET /api/audit-logs</code></li>
+        <li><code>POST /api/audit-logs/record</code></li>
+      </ul>
+
+      <p><strong>Users</strong></p>
+      <ul>
+        <li><code>POST /api/users</code> (admin)</li>
+        <li><code>GET /api/users</code> (admin)</li>
+        <li><code>PUT /api/users/{id}</code> (admin)</li>
+      </ul>
+
+      <h2>9. Database Schema (Main Tables)</h2>
+      <ul>
+        <li><code>publications</code></li>
+        <li><code>faculty</code></li>
+        <li><code>publication_author_links</code></li>
+        <li><code>faculty_masterlist</code></li>
+        <li><code>acknowledgements</code></li>
+        <li><code>acknowledgement_items</code></li>
+        <li><code>users</code></li>
+        <li><code>audit_logs</code></li>
+        <li><code>tracking_log</code></li>
+      </ul>
+      <p>Highlights:</p>
+      <ul>
+        <li><code>faculty</code> uses soft deletes (<code>deleted_at</code>)</li>
+        <li><code>publication_author_links</code> stores match status (<code>pending</code>, <code>confirmed</code>, <code>rejected</code>)</li>
+        <li><code>users.username</code> is unique</li>
+        <li><code>acknowledgement_items.acknowledgement_id</code> has FK cascade to acknowledgements</li>
+      </ul>
+
+      <h2>10. Local Development Setup</h2>
+      <p><strong>Backend</strong></p>
+      <ol>
+        <li><code>cd backend</code></li>
+        <li><code>composer install</code></li>
+        <li>Configure <code>backend/.env</code></li>
+        <li><code>php spark migrate</code></li>
+        <li><code>php spark serve --host localhost --port 8080</code></li>
+      </ol>
+      <p>Current DB defaults in <code>backend/.env</code>:</p>
+      <ul>
+        <li>Host: <code>localhost</code></li>
+        <li>Database: <code>remis_db</code></li>
+        <li>User: <code>root</code></li>
+        <li>Password: empty</li>
+        <li>Port: <code>3306</code></li>
+      </ul>
+
+      <p><strong>Frontend</strong></p>
+      <ol>
+        <li><code>cd frontend</code></li>
+        <li><code>npm install</code></li>
+        <li>Optionally set <code>VITE_API_URL=http://localhost:8080/api</code></li>
+        <li><code>npm run dev</code></li>
+      </ol>
+
+      <h2>11. Current Implementation Notes</h2>
+      <ul>
+        <li><code>frontend/src/router/index.js</code> is template/default and not used by the running app. Active routes are in <code>frontend/src/main.js</code>.</li>
+        <li><code>FacultyMasterlistController</code> exists with CRUD/import/export logic, but its endpoints are not currently registered in <code>backend/app/Config/Routes.php</code>.</li>
+        <li>Some controllers set CORS headers in constructors while a CORS filter class also exists.</li>
+        <li>Dashboard yearly range is currently hardcoded to 2017-2025 in <code>DashboardController</code>.</li>
+      </ul>
+
+      <h2>12. Suggested Add-ons</h2>
+      <ul>
+        <li>Postman/Insomnia collection</li>
+        <li>ERD diagram image section in documentation</li>
+        <li>Role-permission matrix</li>
+        <li>Deployment guide</li>
+      </ul>
+    
+</body>
+</html>
