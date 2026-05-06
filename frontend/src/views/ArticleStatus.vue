@@ -208,47 +208,50 @@
                 </div>
               </div>
               
-              <div class="form-group">
-                <label>Revised Document (1st Review)</label>
-                <a v-if="fullMs.revised_link" :href="fullMs.revised_link" target="_blank" class="flex items-center h-[38px] px-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded text-[var(--accent)] font-bold hover:bg-[var(--accent)]/20 transition-colors truncate">
-                  View External Link <span class="ml-auto text-lg">↗</span>
-                </a>
-                <a v-else-if="fullMs.revised_file" :href="baseUrl + '/' + fullMs.revised_file" target="_blank" class="flex items-center h-[38px] px-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded text-[var(--accent)] font-bold hover:bg-[var(--accent)]/20 transition-colors truncate">
-                  View Revised File <span class="ml-auto text-lg">↗</span>
-                </a>
-                <div v-else class="flex items-center h-[38px] px-3 bg-[var(--surface2)] border border-[var(--border)] rounded text-[13px] opacity-80 italic text-[var(--text3)]">
-                  No file
+              <!-- DYNAMIC REVIEW ROUNDS -->
+              <div class="form-group full" v-if="fullMs.review_rounds && fullMs.review_rounds.length > 0">
+                <h4 class="text-[10px] uppercase font-bold text-[var(--accent)] mb-2">Processing Rounds</h4>
+                <div v-for="round in fullMs.review_rounds" :key="'round-'+round.id" class="p-3 bg-[var(--surface2)] border border-[var(--border2)] rounded mb-2">
+                  <div class="font-bold text-[11px] mb-2">ROUND {{ round.round_number }}</div>
+                  
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>
+                      <label class="text-[9px] uppercase text-[var(--text3)]">Revised Document</label>
+                      <a v-if="round.revised_link" :href="round.revised_link" target="_blank" class="block text-[var(--accent)] font-bold text-xs truncate">View Link ↗</a>
+                      <a v-else-if="round.revised_file_path" :href="baseUrl + '/' + round.revised_file_path" target="_blank" class="block text-[var(--accent)] font-bold text-xs truncate">View File ↗</a>
+                      <span v-else class="text-xs italic text-[var(--text3)]">No file</span>
+                    </div>
+                    <div>
+                      <label class="text-[9px] uppercase text-[var(--text3)]">Action Taken</label>
+                      <div class="text-xs font-semibold mb-1">{{ round.action_taken || 'Pending' }}</div>
+                      <a v-if="round.action_taken_link" :href="round.action_taken_link" target="_blank" class="block text-[var(--accent)] font-bold text-xs truncate">View Action Link ↗</a>
+                      <a v-else-if="round.action_taken_file_path" :href="baseUrl + '/' + round.action_taken_file_path" target="_blank" class="block text-[var(--accent)] font-bold text-xs truncate">View Action File ↗</a>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div class="form-group" v-if="fullMs.revised_file_2 || fullMs.revised_link_2">
-                <label>Revised Document (2nd Review)</label>
-                <a v-if="fullMs.revised_link_2" :href="fullMs.revised_link_2" target="_blank" class="flex items-center h-[38px] px-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded text-[var(--accent)] font-bold hover:bg-[var(--accent)]/20 transition-colors truncate">
-                  View External Link <span class="ml-auto text-lg">↗</span>
-                </a>
-                <a v-else-if="fullMs.revised_file_2" :href="baseUrl + '/' + fullMs.revised_file_2" target="_blank" class="flex items-center h-[38px] px-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded text-[var(--accent)] font-bold hover:bg-[var(--accent)]/20 transition-colors truncate">
-                  View 2nd Revised File <span class="ml-auto text-lg">↗</span>
-                </a>
-              </div>
-
-              <div class="form-group" v-if="fullMs.revised_file_3 || fullMs.revised_link_3">
-                <label>Revised Document (3rd Review)</label>
-                <a v-if="fullMs.revised_link_3" :href="fullMs.revised_link_3" target="_blank" class="flex items-center h-[38px] px-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded text-[var(--accent)] font-bold hover:bg-[var(--accent)]/20 transition-colors truncate">
-                  View External Link <span class="ml-auto text-lg">↗</span>
-                </a>
-                <a v-else-if="fullMs.revised_file_3" :href="baseUrl + '/' + fullMs.revised_file_3" target="_blank" class="flex items-center h-[38px] px-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded text-[var(--accent)] font-bold hover:bg-[var(--accent)]/20 transition-colors truncate">
-                  View 3rd Revised File <span class="ml-auto text-lg">↗</span>
-                </a>
-              </div>
-
-              <div class="form-group" v-if="fullMs.action_taken_file || fullMs.action_taken_link">
-                <label>Action Taken Document</label>
-                <a v-if="fullMs.action_taken_link" :href="fullMs.action_taken_link" target="_blank" class="flex items-center h-[38px] px-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded text-[var(--accent)] font-bold hover:bg-[var(--accent)]/20 transition-colors truncate">
-                  View External Link <span class="ml-auto text-lg">↗</span>
-                </a>
-                <a v-else-if="fullMs.action_taken_file" :href="baseUrl + '/' + fullMs.action_taken_file" target="_blank" class="flex items-center h-[38px] px-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded text-[var(--accent)] font-bold hover:bg-[var(--accent)]/20 transition-colors truncate">
-                  View Action Taken File <span class="ml-auto text-lg">↗</span>
-                </a>
+              <!-- DYNAMIC REVIEWERS -->
+              <div class="form-group full" v-if="fullMs.suggested_reviewers && fullMs.suggested_reviewers.length > 0">
+                <h4 class="text-[10px] uppercase font-bold text-[var(--accent)] mb-2 mt-2">Reviewers Tracking</h4>
+                <div v-for="rev in fullMs.suggested_reviewers" :key="'rev-'+rev.id" class="p-3 bg-[var(--surface2)] border border-[var(--border2)] rounded mb-2">
+                  <div class="font-bold text-[11px] text-[var(--text)] mb-2">{{ rev.name || 'Unnamed Reviewer' }} <span class="text-[var(--text3)] font-normal text-[10px]">({{ rev.email || 'No email' }})</span></div>
+                  
+                  <div v-for="rRound in rev.reviewer_rounds" :key="'rround-'+rRound.id" class="mt-2 pt-2 border-t border-[var(--border)] border-dashed">
+                    <div class="text-[10px] font-bold text-[var(--accent)] mb-1">Round {{ rRound.round_number }}</div>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                      <div><span class="text-[var(--text3)]">Status:</span> {{ rRound.status || 'Pending' }}</div>
+                      <div><span class="text-[var(--text3)]">Sent:</span> {{ rRound.date_sent || '-' }}</div>
+                      
+                      <div>
+                        <span class="text-[var(--text3)]">Returned Doc:</span> 
+                        <a v-if="rRound.file_link" :href="rRound.file_link" target="_blank" class="text-[var(--accent)] font-bold ml-1">Link ↗</a>
+                        <a v-else-if="rRound.file_path" :href="baseUrl + '/' + rRound.file_path" target="_blank" class="text-[var(--accent)] font-bold ml-1">File ↗</a>
+                        <span v-else class="italic text-[var(--text3)] ml-1">None</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div class="form-group full" v-if="fullMs.editor_comments">

@@ -102,7 +102,7 @@
 
     <!-- MODAL -->
     <div class="modal-overlay" :class="{ open: isModalOpen }">
-      <div class="modal">
+      <div class="modal" style="width: 900px">
         <div class="modal-header">
           <h2>{{ editingId ? 'Update Record' : 'Add to Prescreening' }}</h2>
           <button class="modal-close" @click="closeModal">X</button>
@@ -110,8 +110,8 @@
         
         <div class="modal-tabs">
           <button v-if="canViewInitial" @click="activeTab = 'submission'" :class="['modal-tab', { active: activeTab === 'submission' }]">Submission Details</button>
-          <button v-if="canViewInitial" @click="activeTab = 'repo_processing'" :class="['modal-tab', { active: activeTab === 'repo_processing' }]">REPO Processing</button>
-          <button v-if="canViewReview" @click="activeTab = 'reviewers'" :class="['modal-tab', { active: activeTab === 'reviewers' }]">Associate Editor</button>
+          <button v-if="canViewInitial" @click="activeTab = 'repo_processing'" :class="['modal-tab', { active: activeTab === 'repo_processing' }]">Processing & Rounds</button>
+          <button v-if="canViewReview" @click="activeTab = 'reviewers'" :class="['modal-tab', { active: activeTab === 'reviewers' }]">Reviewers Tracking</button>
         </div>
 
         <div class="modal-body custom-scroll">
@@ -181,7 +181,7 @@
             </div>
           </div>
 
-          <!-- TAB 2: REPO Processing -->
+          <!-- TAB 2: REPO Processing & Rounds -->
           <div v-show="activeTab === 'repo_processing'" class="form-grid">
             <div class="form-group full">
               <label>Manuscript Type</label>
@@ -196,7 +196,6 @@
               <label>Turnitin Result (%)</label>
               <input v-model="form.turnitin" placeholder="e.g. 15%" :disabled="!canEditInitial">
             </div>
-
             <div class="form-group full" v-if="canEditInitial">
               <label>Turnitin Report (Upload File)</label>
               <div class="flex items-center gap-4">
@@ -204,47 +203,69 @@
                 <span v-if="form.turnitin_file" class="text-[var(--accent)] font-bold text-[11px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + form.turnitin_file" target="_blank">View File</a></span>
               </div>
             </div>
-
             <div class="form-group full" v-if="canEditInitial">
               <label>Or Add Turnitin Google Drive Link</label>
               <input type="url" v-model="form.turnitin_link" placeholder="https://drive.google.com/..." :disabled="!canEditInitial">
             </div>
-            
 
-            <!-- STATUS AND REMARKS FOR REPO STAFF -->
+            <!-- DYNAMIC REVIEW ROUNDS -->
+            <div class="form-group full mt-6 mb-2">
+              <h3 class="font-bold text-[14px] text-[var(--text)] mb-4 border-b border-[var(--border)] pb-2">Review Rounds Tracking</h3>
+              
+              <div v-for="(round, idx) in reviewRounds" :key="idx" class="modal-panel mb-4 p-4 border border-[var(--border)] rounded-md bg-[var(--surface2)]">
+                <div class="flex items-center justify-between mb-4">
+                  <h4 class="text-[12px] font-bold text-[var(--accent)] uppercase tracking-widest">Review Round {{ round.round_number }}</h4>
+                  <button v-if="reviewRounds.length > 1 && canEditInitial" @click="removeRound(idx)" class="text-red-400 hover:text-red-300 text-xs font-bold px-2 py-1 border border-red-900 rounded bg-red-900/20">X Remove</button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="form-group">
+                    <label>Revised Document (Upload)</label>
+                    <div class="flex items-center gap-2">
+                      <input type="file" @change="handleRoundRevisedUpload($event, idx)" class="!w-auto flex-1 text-xs" :disabled="!canEditInitial">
+                      <span v-if="round.revised_file_path" class="text-[var(--accent)] font-bold text-[10px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + round.revised_file_path" target="_blank">View File</a></span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>Or Revised Document Link</label>
+                    <input type="url" v-model="round.revised_link" placeholder="https://drive.google.com/..." :disabled="!canEditInitial">
+                  </div>
+
+                  <div class="form-group">
+                    <label>Action Taken Document (Upload)</label>
+                    <div class="flex items-center gap-2">
+                      <input type="file" @change="handleRoundActionUpload($event, idx)" class="!w-auto flex-1 text-xs" :disabled="!canEditInitial">
+                      <span v-if="round.action_taken_file_path" class="text-[var(--accent)] font-bold text-[10px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + round.action_taken_file_path" target="_blank">View File</a></span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>Or Action Taken Link</label>
+                    <input type="url" v-model="round.action_taken_link" placeholder="https://drive.google.com/..." :disabled="!canEditInitial">
+                  </div>
+
+                  <div class="form-group col-span-2">
+                    <label>Action Taken Status</label>
+                    <select v-model="round.action_taken" :disabled="!canEditInitial">
+                      <option value="">-</option>
+                      <option>Sent rejection letter</option>
+                      <option>Sent for review</option>
+                      <option>Sent for reviewers</option>
+                      <option>Sent for author revision</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              
+              <button v-if="canEditInitial" @click="addRound" class="btn-outline btn-compact w-full border-dashed">+ Add Review Round</button>
+            </div>
+
             <div class="form-group full mt-2 pt-4 border-t border-[var(--border2)]">
               <label>Comments / Suggestions</label>
               <textarea v-model="form.editor_comments" rows="3" :disabled="!canEditInitial" placeholder="Enter comments or suggestions..."></textarea>
             </div>
-
-            <!-- DYNAMIC SUGGESTED REVIEWERS FOR REPO STAFF -->
-            <div class="form-group full modal-panel mt-4">
-              <div class="flex items-center justify-between mb-4">
-                <h4 class="text-[11px] font-bold text-[var(--accent)] uppercase tracking-widest">Suggested Reviewers</h4>
-                <button v-if="canEditInitial" @click="addSuggestedReviewer" class="btn-outline btn-mini">+ Add Reviewer</button>
-              </div>
-              
-              <div v-for="(rev, idx) in suggestedReviewers" :key="idx" class="grid grid-cols-10 gap-4 mb-2 items-end">
-                <div class="form-group col-span-3">
-                  <label v-if="idx === 0">Reviewer Name</label>
-                  <input v-model="rev.name" :disabled="!canEditInitial" placeholder="Name">
-                </div>
-                <div class="form-group col-span-3">
-                  <label v-if="idx === 0">Affiliation</label>
-                  <input v-model="rev.affil" :disabled="!canEditInitial" placeholder="Affiliation">
-                </div>
-                <div class="form-group col-span-3">
-                  <label v-if="idx === 0">Email Address</label>
-                  <input type="email" v-model="rev.email" :disabled="!canEditInitial" placeholder="Email">
-                </div>
-                <div class="form-group col-span-1 text-right pb-1">
-                  <button v-if="canEditInitial && suggestedReviewers.length > 1" @click="removeSuggestedReviewer(idx)" class="text-red-400 hover:text-red-300 text-xs font-bold px-2 py-2 border border-red-900 rounded bg-red-900/20">X</button>
-                </div>
-              </div>
-            </div>
             
             <div class="form-group">
-              <label>Remarks</label>
+              <label>Overall Remarks</label>
               <select v-model="form.editor_remarks" :disabled="!canEditInitial">
                 <option value="">-</option>
                 <option>Return to author for review</option>
@@ -262,85 +283,80 @@
                 <option>Ongoing</option>
               </select>
             </div>
-
-            <div class="form-group full">
-              <label>Action Taken</label>
-              <select v-model="form.action_taken" :disabled="!canEditInitial">
-                <option value="">-</option>
-                <option>Sent rejection letter</option>
-                <option>Sent for review</option>
-                <option>Sent for reviewers</option>
-                <option>Sent for author revision</option>
-              </select>
-            </div>
           </div>
 
 
-
-
-
-          <!-- TAB 4: Associate Editor Dashboard -->
+          <!-- TAB 3: REVIEWERS TRACKING -->
           <div v-show="activeTab === 'reviewers'" class="form-grid">
-            
-            <div class="form-group full modal-panel mb-2">
-              <div class="flex items-center justify-between mb-4">
-                <h4 class="text-[11px] font-bold text-[var(--accent)] uppercase tracking-widest">Suggested Reviewers</h4>
-                <button v-if="canEditReview" @click="addSuggestedReviewer" class="btn-outline btn-mini">+ Add Reviewer</button>
-              </div>
-              
-              <div v-for="(rev, idx) in suggestedReviewers" :key="idx" class="grid grid-cols-10 gap-4 mb-2 items-end">
-                <div class="form-group col-span-3">
-                  <label v-if="idx === 0">Reviewer Name</label>
-                  <input v-model="rev.name" :disabled="!canEditReview" placeholder="Name">
-                </div>
-                <div class="form-group col-span-3">
-                  <label v-if="idx === 0">Affiliation</label>
-                  <input v-model="rev.affil" :disabled="!canEditReview" placeholder="Affiliation">
-                </div>
-                <div class="form-group col-span-3">
-                  <label v-if="idx === 0">Email Address</label>
-                  <input type="email" v-model="rev.email" :disabled="!canEditReview" placeholder="Email">
-                </div>
-                <div class="form-group col-span-1 text-right pb-1">
-                  <button v-if="canEditReview && suggestedReviewers.length > 1" @click="removeSuggestedReviewer(idx)" class="text-red-400 hover:text-red-300 text-xs font-bold px-2 py-2 border border-red-900 rounded bg-red-900/20">X</button>
-                </div>
-              </div>
-            </div>
-
-            <div class="form-group full mt-2">
-              <label>Comments / Suggestions</label>
-              <textarea v-model="form.editor_comments" rows="3" :disabled="!canEditReview" placeholder="Enter comments or suggestions..."></textarea>
-            </div>
-            
-            <div class="form-group">
-              <label>Remarks</label>
-              <select v-model="form.editor_remarks" :disabled="!canEditReview">
-                <option value="">-</option>
-                <option>Return to author for review</option>
-                <option>Go for review</option>
-                <option>For EIC before review</option>
-                <option>Reject</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label>Prescreening Status</label>
-              <select v-model="form.prescreen_status" :disabled="!canEditReview">
-                <option value="">-</option>
-                <option>Done</option>
-                <option>Ongoing</option>
-              </select>
-            </div>
-
             <div class="form-group full">
-              <label>Action Taken</label>
-              <select v-model="form.action_taken" :disabled="!canEditReview">
-                <option value="">-</option>
-                <option>Sent rejection letter</option>
-                <option>Sent for review</option>
-                <option>Sent for reviewers</option>
-                <option>Sent for author revision</option>
-              </select>
+              <h3 class="font-bold text-[14px] text-[var(--text)] mb-4 border-b border-[var(--border)] pb-2">Reviewers Tracking</h3>
+              
+              <div v-for="(rev, idx) in suggestedReviewers" :key="idx" class="modal-panel mb-4 p-4 border border-[var(--border)] rounded-md bg-[var(--surface2)]">
+                <div class="flex items-center justify-between mb-4">
+                  <h4 class="text-[12px] font-bold text-[var(--accent)] uppercase tracking-widest">Reviewer {{ idx + 1 }}</h4>
+                  <button v-if="canEditReview" @click="removeSuggestedReviewer(idx)" class="text-red-400 hover:text-red-300 text-xs font-bold px-2 py-1 border border-red-900 rounded bg-red-900/20">X Remove</button>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-4 mb-3">
+                  <div class="form-group">
+                    <label>Reviewer Name</label>
+                    <input v-model="rev.name" placeholder="Name" :disabled="!canEditReview">
+                  </div>
+                  <div class="form-group">
+                    <label>Affiliation</label>
+                    <input v-model="rev.affiliation" placeholder="Affiliation" :disabled="!canEditReview">
+                  </div>
+                  <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" v-model="rev.email" placeholder="Email" :disabled="!canEditReview">
+                  </div>
+                </div>
+
+                <div v-for="(rRound, rIdx) in rev.reviewer_rounds" :key="rIdx" class="mt-4 pt-4 border-t border-[var(--border2)]">
+                  <div class="flex items-center justify-between mb-3">
+                    <h5 class="text-[11px] font-bold text-[var(--accent)] uppercase tracking-widest">Review Round {{ rRound.round_number }}</h5>
+                    <button v-if="rev.reviewer_rounds.length > 1 && canEditReview" @click="removeReviewerRound(idx, rIdx)" class="text-red-400 hover:text-red-300 text-[10px] font-bold px-2 py-1 border border-red-900 rounded bg-red-900/20">X Round</button>
+                  </div>
+                  
+                  <div class="grid grid-cols-2 gap-4 mb-3">
+                    <div class="form-group">
+                      <label>Availability / Status</label>
+                      <select v-model="rRound.status" :disabled="!canEditReview">
+                        <option value="">-</option>
+                        <option>Pending Response</option>
+                        <option>Waiting for response</option>
+                        <option>Sent</option>
+                        <option>Available</option>
+                        <option>Declined</option>
+                        <option>Review Completed</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Date Sent</label>
+                      <input type="date" v-model="rRound.date_sent" :disabled="!canEditReview">
+                    </div>
+                  </div>
+
+
+                  <div class="grid grid-cols-2 gap-4">
+                    <div class="form-group">
+                      <label>Returned Review Document (Upload)</label>
+                      <div class="flex items-center gap-2">
+                        <input type="file" @change="handleReviewerUpload($event, idx, rIdx)" class="!w-auto flex-1 text-xs" :disabled="!canEditReview">
+                        <span v-if="rRound.file_path" class="text-[var(--accent)] font-bold text-[10px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + rRound.file_path" target="_blank">View File</a></span>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Or Review Document Link</label>
+                      <input type="url" v-model="rRound.file_link" placeholder="https://drive.google.com/..." :disabled="!canEditReview">
+                    </div>
+                  </div>
+                </div>
+
+                <button v-if="canEditReview" @click="addReviewerRound(idx)" class="btn-outline btn-mini w-full mt-4 !text-[10px]">+ Add Round for this Reviewer</button>
+              </div>
+
+              <button v-if="canEditReview" @click="addSuggestedReviewer" class="btn-outline btn-compact w-full border-dashed">+ Add Reviewer</button>
             </div>
           </div>
 
@@ -366,12 +382,12 @@ const canViewInitial = computed(() => true);
 const canEditInitial = computed(() => ['eic', 'repo_staff'].includes(currentRole.value));
 
 const canViewReview = computed(() => true);
-const canEditReview = computed(() => currentRole.value === 'eic');
+// Allow both eic and repo staff to edit reviewers here as it is the Prescreening dashboard
+const canEditReview = computed(() => ['eic', 'repo_staff'].includes(currentRole.value));
 
 const canAddManuscript = computed(() => ['eic', 'repo_staff'].includes(currentRole.value));
 const canDeleteManuscript = computed(() => ['eic', 'repo_staff'].includes(currentRole.value));
 
-// Compute if the user has any edit rights on the current active tab
 const canSaveForm = computed(() => {
   if (activeTab.value === 'submission') return canEditInitial.value;
   if (activeTab.value === 'repo_processing') return canEditInitial.value;
@@ -381,7 +397,6 @@ const canSaveForm = computed(() => {
 
 // --- DATA LOGIC ---
 const manuscripts = ref([]);
-const usersList = ref([]);
 const searchQuery = ref('');
 const typeFilter = ref('');
 const yearFilter = ref('');
@@ -391,28 +406,20 @@ const editingId = ref(null);
 const activeTab = ref('submission');
 const selectedFile = ref(null);
 const turnitinFile = ref(null);
-const suggestedReviewers = ref([{ name: '', affil: '', email: '' }]);
+
+const reviewRounds = ref([{ round_number: 1, action_taken: '' }]);
+const suggestedReviewers = ref([{ name: '', affiliation: '', email: '', reviewer_rounds: [{ round_number: 1, status: '', date_sent: '' }] }]);
+
 const errorMessage = ref('');
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/index.php/api', '') : 'http://localhost/mjsir_tracker/backend/public';
-
-const form = ref({
-  contributor_type: '', submission_form: '', manuscript_type: '', code: '', title: '', turnitin: '', file_path: '',
-  date: '', authors: '', author_email: '', inst: '', link: '', prenotes: '', turnitin_link: '',
-  criteria_scope: 0, criteria_methodology: 0, criteria_format: 0,
-  editor_comments: '', editor_remarks: '', prescreen_status: '', action_taken: '',
-  srev: '', srev1_affil: '', srev1_email: '',
-  srev2_name: '', srev2_affil: '', srev2_email: '',
-  srev3_name: '', srev3_affil: '', srev3_email: '',
-  eic: ''
-});
-
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost/mjsir_tracker/backend/public/index.php/api';
 const api = axios.create({ baseURL: API_BASE_URL });
 
+const form = ref({});
+
 onMounted(async () => {
   await fetchManuscripts();
-  await fetchUsers();
 });
 
 const fetchManuscripts = async () => {
@@ -423,18 +430,6 @@ const fetchManuscripts = async () => {
     console.error("Error fetching data:", error);
   }
 };
-
-const fetchUsers = async () => {
-  try {
-    const response = await api.get('/users');
-    usersList.value = response.data;
-  } catch (error) {
-    console.error("Error fetching users:", error);
-  }
-};
-
-const repoStaffList = computed(() => usersList.value.filter(u => u.role === 'repo_staff'));
-const editorList = computed(() => usersList.value.filter(u => u.role === 'editor'));
 
 const getStatusClass = (status) => {
   if (!status) return 'default';
@@ -447,6 +442,13 @@ const getStatusClass = (status) => {
 
 const filteredManuscripts = computed(() => {
   let result = manuscripts.value;
+
+  // Filter out manuscripts that have completed prescreening (Done, Passed, or Rejected)
+  result = result.filter(m => {
+    const status = (m.prescreen_status || '').toLowerCase();
+    return !status.includes('done') && !status.includes('passed') && !status.includes('reject');
+  });
+
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase();
     result = result.filter(m => 
@@ -472,35 +474,53 @@ const handleTurnitinUpload = (event) => {
   turnitinFile.value = event.target.files[0];
 };
 
+const handleRoundRevisedUpload = (event, idx) => {
+  reviewRounds.value[idx].revisedFileObject = event.target.files[0];
+};
+
+const handleRoundActionUpload = (event, idx) => {
+  reviewRounds.value[idx].actionFileObject = event.target.files[0];
+};
+
+
+const handleReviewerUpload = (event, revIdx, rIdx) => {
+  suggestedReviewers.value[revIdx].reviewer_rounds[rIdx].fileObject = event.target.files[0];
+};
+
 const openModal = (ms = null) => {
-  // Always open on the first tab the user has access to
   activeTab.value = 'submission';
   errorMessage.value = '';
-
   selectedFile.value = null;
   turnitinFile.value = null;
+
   if (ms) {
     editingId.value = ms.id;
     form.value = { ...ms };
-    if (ms.suggested_reviewers) {
-      try {
-        suggestedReviewers.value = JSON.parse(ms.suggested_reviewers);
-      } catch (e) {
-        suggestedReviewers.value = [{ name: '', affil: '', email: '' }];
-      }
+    if (!form.value.prescreen_status) {
+      form.value.prescreen_status = 'Ongoing';
+    }
+    
+    if (ms.review_rounds && ms.review_rounds.length > 0) {
+      reviewRounds.value = JSON.parse(JSON.stringify(ms.review_rounds));
     } else {
-      suggestedReviewers.value = [{ name: '', affil: '', email: '' }];
+      reviewRounds.value = [{ round_number: 1, action_taken: '' }];
+    }
+
+    if (ms.suggested_reviewers && ms.suggested_reviewers.length > 0) {
+      suggestedReviewers.value = JSON.parse(JSON.stringify(ms.suggested_reviewers));
+      suggestedReviewers.value.forEach(r => {
+        if (!r.reviewer_rounds || r.reviewer_rounds.length === 0) {
+          r.reviewer_rounds = [{ round_number: 1, status: '', date_sent: '' }];
+        }
+      });
+    } else {
+      suggestedReviewers.value = [{ name: '', affiliation: '', email: '', reviewer_rounds: [{ round_number: 1, status: '', date_sent: '' }] }];
     }
   } else {
     editingId.value = null;
-    form.value = {
-      contributor_type: '', submission_form: '', manuscript_type: '', code: '', title: '', turnitin: '', file_path: '',
-      date: '', authors: '', author_email: '', inst: '', link: '', prenotes: '', turnitin_link: '',
-      criteria_scope: 0, criteria_methodology: 0, criteria_format: 0,
-      editor_comments: '', editor_remarks: '', prescreen_status: '', action_taken: '',
-      eic: ''
-    };
-    suggestedReviewers.value = [{ name: '', affil: '', email: '' }];
+    form.value = { code: '', title: '', turnitin: '', file_path: '', date: '', authors: '', author_email: '', inst: '', link: '', prenotes: '', turnitin_link: '', prescreen_status: 'Ongoing' };
+    reviewRounds.value = [{ round_number: 1, action_taken: '' }];
+    suggestedReviewers.value = [{ name: '', affiliation: '', email: '', reviewer_rounds: [{ round_number: 1, status: '', date_sent: '' }] }];
   }
   isModalOpen.value = true;
 };
@@ -509,6 +529,35 @@ const closeModal = () => {
   isModalOpen.value = false;
   editingId.value = null;
   errorMessage.value = '';
+};
+
+const addRound = () => {
+  const nextRoundNum = reviewRounds.value.length > 0 ? Math.max(...reviewRounds.value.map(r => r.round_number || 0)) + 1 : 1;
+  reviewRounds.value.push({ round_number: nextRoundNum, action_taken: '' });
+};
+
+const removeRound = (idx) => {
+  if (reviewRounds.value.length > 1) reviewRounds.value.splice(idx, 1);
+};
+
+const addSuggestedReviewer = () => {
+  suggestedReviewers.value.push({ name: '', affiliation: '', email: '', reviewer_rounds: [{ round_number: 1, status: '', date_sent: '' }] });
+};
+
+const removeSuggestedReviewer = (idx) => {
+  suggestedReviewers.value.splice(idx, 1);
+};
+
+const addReviewerRound = (revIdx) => {
+  const rounds = suggestedReviewers.value[revIdx].reviewer_rounds;
+  const nextRoundNum = rounds.length > 0 ? Math.max(...rounds.map(r => r.round_number || 0)) + 1 : 1;
+  rounds.push({ round_number: nextRoundNum, status: '', date_sent: '' });
+};
+
+const removeReviewerRound = (revIdx, rIdx) => {
+  if (suggestedReviewers.value[revIdx].reviewer_rounds.length > 1) {
+    suggestedReviewers.value[revIdx].reviewer_rounds.splice(rIdx, 1);
+  }
 };
 
 const saveManuscript = async () => {
@@ -524,28 +573,31 @@ const saveManuscript = async () => {
     activeTab.value = 'submission';
     return;
   }
-  if (!form.value.contributor_type) {
-    errorMessage.value = "Validation Error: Please select a Contributor Type.";
-    activeTab.value = 'submission';
-    return;
-  }
   
-  if (!selectedFile.value && !form.value.link && !form.value.file_path) {
-    errorMessage.value = "Validation Error: Please either upload a Manuscript file or provide a File Link.";
-    activeTab.value = 'submission';
-    return;
-  }
-
   const formData = new FormData();
   
-  form.value.suggested_reviewers = JSON.stringify(suggestedReviewers.value);
+  formData.append('review_rounds', JSON.stringify(reviewRounds.value));
+  reviewRounds.value.forEach((round, idx) => {
+    if (round.revisedFileObject) formData.append(`round_revised_file_${idx}`, round.revisedFileObject);
+    if (round.actionFileObject) formData.append(`round_action_file_${idx}`, round.actionFileObject);
+  });
+
+  formData.append('suggested_reviewers', JSON.stringify(suggestedReviewers.value));
+  suggestedReviewers.value.forEach((rev, revIdx) => {
+    if (rev.reviewer_rounds) {
+      rev.reviewer_rounds.forEach((round, rIdx) => {
+        if (round.fileObject) formData.append(`reviewer_file_${revIdx}_${rIdx}`, round.fileObject);
+        if (round.sentFileObject) formData.append(`reviewer_sent_file_${revIdx}_${rIdx}`, round.sentFileObject);
+      });
+    }
+  });
 
   if (form.value.contributor_type && !form.value.type) {
     form.value.type = form.value.contributor_type;
   }
 
   for (const key in form.value) {
-    if (form.value[key] !== null && form.value[key] !== undefined) {
+    if (key !== 'suggested_reviewers' && key !== 'review_rounds' && form.value[key] !== null && form.value[key] !== undefined) {
       formData.append(key, form.value[key]);
     }
   }
@@ -587,17 +639,4 @@ const deleteManuscript = async (id) => {
     console.error("Error deleting:", error);
   }
 };
-
-const addSuggestedReviewer = () => {
-  suggestedReviewers.value.push({ name: '', affil: '', email: '' });
-};
-
-const removeSuggestedReviewer = (index) => {
-  if (suggestedReviewers.value.length > 1) {
-    suggestedReviewers.value.splice(index, 1);
-  }
-};
 </script>
-
-
-

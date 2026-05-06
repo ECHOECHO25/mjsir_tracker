@@ -61,18 +61,23 @@
       </table>
     </div>
 
-    <!-- MODAL (Tailored explicitly to the role) -->
+    <!-- MODAL -->
     <div class="modal-overlay" :class="{ open: isModalOpen }">
-      <div class="modal" :style="{ width: currentRole === 'repo_staff' ? '800px' : '900px' }">
+      <div class="modal" style="width: 900px">
         <div class="modal-header">
           <h2>{{ currentRole === 'repo_staff' ? 'REPO Dashboard: Processing' : 'Peer Review Dashboard' }}</h2>
           <button class="modal-close" @click="closeModal">X</button>
         </div>
         
+        <div class="modal-tabs">
+          <button @click="activeTab = 'processing'" :class="['modal-tab', { active: activeTab === 'processing' }]">Processing</button>
+          <button @click="activeTab = 'reviewers'" :class="['modal-tab', { active: activeTab === 'reviewers' }]">Reviewers Tracking</button>
+        </div>
+
         <div class="modal-body custom-scroll">
           
           <!-- TOP MANUSCRIPT INFO PANEL -->
-          <div class="modal-panel" style="margin-bottom: 30px; display: block; overflow: hidden; height: auto;">
+          <div class="modal-panel" style="margin-bottom: 24px; display: block; overflow: hidden; height: auto;">
             <div class="meta-kicker mb-1" style="color: var(--accent);">{{ form.code }}</div>
             <div class="text-[var(--text)] font-semibold" style="margin-bottom: 12px;">{{ form.title }}</div>
             
@@ -82,165 +87,128 @@
             </div>
           </div>
 
-          <!-- REPO STAFF VIEW -->
-          <div v-if="currentRole === 'repo_staff'" class="form-grid">
-            <div class="form-group">
-              <label>Contributor Type</label>
-              <select v-model="form.contributor_type">
-                <option value="">-</option>
-                <option>External</option>
-                <option>Internal</option>
-                <option>International</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Manuscript Type</label>
-              <select v-model="form.manuscript_type">
-                <option value="">-</option>
-                <option>Research Article</option>
-                <option>Research Note</option>
-                <option>Systematic Review</option>
-              </select>
-            </div>
-            <div class="form-group full">
-              <label>Turnitin Result (%)</label>
-              <input v-model="form.turnitin" placeholder="e.g. 15%">
-            </div>
+          <!-- TAB 1: PROCESSING -->
+          <div v-show="activeTab === 'processing'" class="form-grid">
             
-            <div class="form-group full" v-if="currentRole === 'repo_staff'">
-              <label>Turnitin Report (Upload File)</label>
-              <div class="flex items-center gap-4">
-                <input type="file" @change="handleTurnitinUpload" class="!w-auto flex-1">
-                <span v-if="form.turnitin_file" class="text-[var(--accent)] font-bold text-[11px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + form.turnitin_file" target="_blank">View File</a></span>
+            <template v-if="currentRole === 'repo_staff'">
+              <div class="form-group">
+                <label>Contributor Type</label>
+                <select v-model="form.contributor_type">
+                  <option value="">-</option>
+                  <option>External</option>
+                  <option>Internal</option>
+                  <option>International</option>
+                </select>
               </div>
+              <div class="form-group">
+                <label>Manuscript Type</label>
+                <select v-model="form.manuscript_type">
+                  <option value="">-</option>
+                  <option>Research Article</option>
+                  <option>Research Note</option>
+                  <option>Systematic Review</option>
+                </select>
+              </div>
+              <div class="form-group full">
+                <label>Turnitin Result (%)</label>
+                <input v-model="form.turnitin" placeholder="e.g. 15%">
+              </div>
+              <div class="form-group full">
+                <label>Turnitin Report (Upload File)</label>
+                <div class="flex items-center gap-4">
+                  <input type="file" @change="handleTurnitinUpload" class="!w-auto flex-1">
+                  <span v-if="form.turnitin_file" class="text-[var(--accent)] font-bold text-[11px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + form.turnitin_file" target="_blank">View File</a></span>
+                </div>
+              </div>
+              <div class="form-group full">
+                <label>Or Add Turnitin Google Drive Link</label>
+                <input type="url" v-model="form.turnitin_link" placeholder="https://drive.google.com/...">
+              </div>
+            </template>
+
+            <template v-if="currentRole === 'editor'">
+              <div class="p-5 rounded-lg bg-[var(--surface)] text-sm space-y-4 col-span-full" style="margin-bottom: 12px;">
+                <h3 class="font-bold text-[11px] uppercase tracking-widest text-[var(--accent)] mb-2 border-b border-[var(--border)] pb-2">Manuscript Overview (Blind Review)</h3>
+                <div class="grid grid-cols-2 gap-x-6 gap-y-3">
+                  <div><span class="text-[var(--text3)] block text-xs">Contributor Type</span> <span class="font-semibold text-[var(--text2)]">{{ form.contributor_type || '-' }}</span></div>
+                  <div><span class="text-[var(--text3)] block text-xs">Manuscript Type</span> <span class="font-semibold text-[var(--text2)]">{{ form.manuscript_type || '-' }}</span></div>
+                  <div>
+                    <span class="text-[var(--text3)] block text-xs">Turnitin Result</span> 
+                    <a v-if="form.turnitin_link" :href="form.turnitin_link" target="_blank" class="text-[var(--accent)] font-semibold hover:underline" title="View Turnitin Report via Link">{{ form.turnitin || 'View Link' }}</a>
+                    <a v-else-if="form.turnitin_file" :href="baseUrl + '/' + form.turnitin_file" target="_blank" class="text-[var(--accent)] font-semibold hover:underline" title="View Uploaded Turnitin Report">{{ form.turnitin || 'View File' }}</a>
+                    <span v-else class="font-semibold text-[var(--text2)]">{{ form.turnitin || '-' }}</span>
+                  </div>
+                  <div>
+                    <span class="text-[var(--text3)] block text-xs">Manuscript File</span> 
+                    <a v-if="form.file_path" :href="baseUrl + '/' + form.file_path" target="_blank" class="text-[var(--accent)] hover:underline font-bold text-xs uppercase">View Document</a>
+                    <span v-else class="text-[var(--text3)] italic">No file attached</span>
+                  </div>
+                </div>
+                <div v-if="form.prenotes" class="pt-3 border-t border-[var(--border)] mt-3">
+                  <span class="text-[var(--text3)] block text-xs mb-1">Initial Submission Notes</span>
+                  <p class="text-[var(--text)] bg-[var(--surface2)] p-3 rounded text-[13px]">{{ form.prenotes }}</p>
+                </div>
+              </div>
+            </template>
+
+            <!-- DYNAMIC REVIEW ROUNDS -->
+            <div class="form-group full mt-6 mb-2">
+              <h3 class="font-bold text-[14px] text-[var(--text)] mb-4 border-b border-[var(--border)] pb-2">Review Rounds Tracking</h3>
+              
+              <div v-for="(round, idx) in reviewRounds" :key="idx" class="modal-panel mb-4 p-4 border border-[var(--border)] rounded-md bg-[var(--surface2)]">
+                <div class="flex items-center justify-between mb-4">
+                  <h4 class="text-[12px] font-bold text-[var(--accent)] uppercase tracking-widest">Review Round {{ round.round_number }}</h4>
+                  <button v-if="reviewRounds.length > 1" @click="removeRound(idx)" class="text-red-400 hover:text-red-300 text-xs font-bold px-2 py-1 border border-red-900 rounded bg-red-900/20">X Remove</button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="form-group">
+                    <label>Revised Document (Upload)</label>
+                    <div class="flex items-center gap-2">
+                      <input type="file" @change="handleRoundRevisedUpload($event, idx)" class="!w-auto flex-1 text-xs">
+                      <span v-if="round.revised_file_path" class="text-[var(--accent)] font-bold text-[10px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + round.revised_file_path" target="_blank">View File</a></span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>Or Revised Document Link</label>
+                    <input type="url" v-model="round.revised_link" placeholder="https://drive.google.com/...">
+                  </div>
+
+                  <div class="form-group">
+                    <label>Action Taken Document (Upload)</label>
+                    <div class="flex items-center gap-2">
+                      <input type="file" @change="handleRoundActionUpload($event, idx)" class="!w-auto flex-1 text-xs">
+                      <span v-if="round.action_taken_file_path" class="text-[var(--accent)] font-bold text-[10px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + round.action_taken_file_path" target="_blank">View File</a></span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>Or Action Taken Link</label>
+                    <input type="url" v-model="round.action_taken_link" placeholder="https://drive.google.com/...">
+                  </div>
+
+                  <div class="form-group col-span-2">
+                    <label>Action Taken Status</label>
+                    <select v-model="round.action_taken">
+                      <option value="">-</option>
+                      <option>Sent rejection letter</option>
+                      <option>Sent for review</option>
+                      <option>Sent for reviewers</option>
+                      <option>Sent for author revision</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              
+              <button v-if="currentRole !== 'editor'" @click="addRound" class="btn-outline btn-compact w-full border-dashed">+ Add Review Round</button>
             </div>
-            
-            <div class="form-group full" v-if="currentRole === 'repo_staff'">
-              <label>Or Add Turnitin Google Drive Link</label>
-              <input type="url" v-model="form.turnitin_link" placeholder="https://drive.google.com/...">
-            </div>
-            
 
-
-
-            <!-- STATUS AND REMARKS FOR REPO STAFF -->
-            <div class="form-group full mt-2 pt-4 border-t border-[var(--border2)]">
+            <div class="form-group full mt-4 pt-4 border-t border-[var(--border2)]">
               <label>Comments / Suggestions</label>
               <textarea v-model="form.editor_comments" rows="3" placeholder="Enter comments or suggestions..."></textarea>
             </div>
-
-            <!-- DYNAMIC SUGGESTED REVIEWERS FOR REPO STAFF -->
-            <div class="form-group full modal-panel mt-4">
-              <div class="flex items-center justify-between mb-4">
-                <h4 class="text-[11px] font-bold text-[var(--accent)] uppercase tracking-widest">Suggested Reviewers</h4>
-                <button @click="addSuggestedReviewer" class="btn-outline btn-mini">+ Add Reviewer</button>
-              </div>
-              
-              <div v-for="(rev, idx) in suggestedReviewers" :key="idx" class="grid grid-cols-10 gap-4 mb-2 items-end">
-                <div class="form-group col-span-3">
-                  <label v-if="idx === 0">Reviewer Name</label>
-                  <input v-model="rev.name" placeholder="Name">
-                </div>
-                <div class="form-group col-span-3">
-                  <label v-if="idx === 0">Affiliation</label>
-                  <input v-model="rev.affil" placeholder="Affiliation">
-                </div>
-                <div class="form-group col-span-3">
-                  <label v-if="idx === 0">Email Address</label>
-                  <input type="email" v-model="rev.email" placeholder="Email">
-                </div>
-                <div class="form-group col-span-1 text-right pb-1">
-                  <button v-if="suggestedReviewers.length > 1" @click="removeSuggestedReviewer(idx)" class="text-red-400 hover:text-red-300 text-xs font-bold px-2 py-2 border border-red-900 rounded bg-red-900/20">X</button>
-                </div>
-              </div>
-            </div>
             
             <div class="form-group">
-              <label>Review Round</label>
-              <select v-model="form.review_round">
-                <option value="1">1st Review</option>
-                <option value="2">2nd Review</option>
-                <option value="3">3rd Review</option>
-                <option value="4">4th Review</option>
-                <option value="5">5th Review</option>
-              </select>
-            </div>
-            
-            <!-- 1ST REVIEW UPLOADS -->
-            <!-- 1ST REVIEW UPLOADS -->
-            <template v-if="form.review_round == 1">
-              <div class="form-group" v-if="currentRole === 'repo_staff'">
-                <label>Upload Revised Document (1st Review)</label>
-                <div class="flex items-center gap-4">
-                  <input type="file" @change="handleRevisedUpload" class="!w-auto flex-1">
-                  <span v-if="form.revised_file" class="text-[var(--accent)] font-bold text-[11px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + form.revised_file" target="_blank">View File</a></span>
-                </div>
-              </div>
-  
-              <div class="form-group" v-if="currentRole === 'repo_staff'">
-                <label>Or Add Revised Document Link (1st Review)</label>
-                <input type="url" v-model="form.revised_link" placeholder="https://drive.google.com/...">
-              </div>
-            </template>
-
-            <!-- 2ND REVIEW UPLOADS -->
-            <template v-if="form.review_round == 2">
-              <div class="form-group" v-if="currentRole === 'repo_staff'">
-                <label>Upload Revised Document (2nd Review)</label>
-                <div class="flex items-center gap-4">
-                  <input type="file" @change="handleRevisedUpload2" class="!w-auto flex-1">
-                  <span v-if="form.revised_file_2" class="text-[var(--accent)] font-bold text-[11px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + form.revised_file_2" target="_blank">View 2nd File</a></span>
-                </div>
-              </div>
-  
-              <div class="form-group" v-if="currentRole === 'repo_staff'">
-                <label>Or Add Revised Document Link (2nd Review)</label>
-                <input type="url" v-model="form.revised_link_2" placeholder="https://drive.google.com/...">
-              </div>
-            </template>
-
-            <!-- 3RD REVIEW UPLOADS -->
-            <template v-if="form.review_round >= 3">
-              <div class="form-group" v-if="currentRole === 'repo_staff'">
-                <label>Upload Revised Document (3rd Review)</label>
-                <div class="flex items-center gap-4">
-                  <input type="file" @change="handleRevisedUpload3" class="!w-auto flex-1">
-                  <span v-if="form.revised_file_3" class="text-[var(--accent)] font-bold text-[11px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + form.revised_file_3" target="_blank">View 3rd File</a></span>
-                </div>
-              </div>
-  
-              <div class="form-group" v-if="currentRole === 'repo_staff'">
-                <label>Or Add Revised Document Link (3rd Review)</label>
-                <input type="url" v-model="form.revised_link_3" placeholder="https://drive.google.com/...">
-              </div>
-            </template>
-            
-            <div class="form-group mt-2">
-              <label>Action Taken Document</label>
-              <div class="flex items-center gap-2">
-                <input type="file" @change="handleActionTakenUpload" class="!w-auto flex-1 text-xs">
-                <span v-if="form.action_taken_file" class="text-[var(--accent)] font-bold text-[11px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + form.action_taken_file" target="_blank">View File</a></span>
-              </div>
-            </div>
-
-            <div class="form-group mt-2">
-              <label>Or Action Taken Link</label>
-              <input type="url" v-model="form.action_taken_link" placeholder="https://drive.google.com/...">
-            </div>
-
-            <div class="form-group full mb-4">
-              <label>Action Taken</label>
-              <select v-model="form.action_taken">
-                <option value="">-</option>
-                <option>Sent rejection letter</option>
-                <option>Sent for review</option>
-                <option>Sent for reviewers</option>
-                <option>Sent for author revision</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label>Remarks</label>
+              <label>Overall Remarks</label>
               <select v-model="form.editor_remarks">
                 <option value="">-</option>
                 <option>Return to author for review</option>
@@ -252,157 +220,88 @@
 
             <div class="form-group">
               <label>Prescreening Status</label>
-              <select v-model="form.prescreen_status">
+              <select v-model="form.prescreen_status" :disabled="currentRole === 'editor'">
                 <option value="">-</option>
                 <option>Done</option>
                 <option>Ongoing</option>
               </select>
             </div>
-
-
 
           </div>
 
-          <!-- EDITOR VIEW -->
-          <div v-if="currentRole === 'editor'" class="form-grid" style="margin-top: 20px;">
-            
-            <!-- READ-ONLY MANUSCRIPT SUMMARY FOR EDITOR -->
-            <div class="p-5 rounded-lg bg-[var(--surface)] text-sm space-y-4 col-span-full" style="margin-bottom: 24px;">
-              <h3 class="font-bold text-[11px] uppercase tracking-widest text-[var(--accent)] mb-2 border-b border-[var(--border)] pb-2">Manuscript Overview (Blind Review)</h3>
+
+          <!-- TAB 2: REVIEWERS TRACKING -->
+          <div v-show="activeTab === 'reviewers'" class="form-grid">
+            <div class="form-group full">
+              <h3 class="font-bold text-[14px] text-[var(--text)] mb-4 border-b border-[var(--border)] pb-2">Reviewers Tracking</h3>
               
-              <div class="grid grid-cols-2 gap-x-6 gap-y-3">
-                <div><span class="text-[var(--text3)] block text-xs">Contributor Type</span> <span class="font-semibold text-[var(--text2)]">{{ form.contributor_type || '-' }}</span></div>
-                <div><span class="text-[var(--text3)] block text-xs">Manuscript Type</span> <span class="font-semibold text-[var(--text2)]">{{ form.manuscript_type || '-' }}</span></div>
+              <div v-for="(rev, idx) in suggestedReviewers" :key="idx" class="modal-panel mb-4 p-4 border border-[var(--border)] rounded-md bg-[var(--surface2)]">
+                <div class="flex items-center justify-between mb-4">
+                  <h4 class="text-[12px] font-bold text-[var(--accent)] uppercase tracking-widest">Reviewer {{ idx + 1 }}</h4>
+                  <button @click="removeSuggestedReviewer(idx)" class="text-red-400 hover:text-red-300 text-xs font-bold px-2 py-1 border border-red-900 rounded bg-red-900/20">X Remove</button>
+                </div>
                 
-                <div>
-                  <span class="text-[var(--text3)] block text-xs">Turnitin Result</span> 
-                  <a v-if="form.turnitin_link" :href="form.turnitin_link" target="_blank" class="text-[var(--accent)] font-semibold hover:underline" title="View Turnitin Report via Link">{{ form.turnitin || 'View Link' }}</a>
-                  <a v-else-if="form.turnitin_file" :href="baseUrl + '/' + form.turnitin_file" target="_blank" class="text-[var(--accent)] font-semibold hover:underline" title="View Uploaded Turnitin Report">{{ form.turnitin || 'View File' }}</a>
-                  <span v-else class="font-semibold text-[var(--text2)]">{{ form.turnitin || '-' }}</span>
+                <div class="grid grid-cols-3 gap-4 mb-3">
+                  <div class="form-group">
+                    <label>Reviewer Name</label>
+                    <input v-model="rev.name" placeholder="Name">
+                  </div>
+                  <div class="form-group">
+                    <label>Affiliation</label>
+                    <input v-model="rev.affiliation" placeholder="Affiliation">
+                  </div>
+                  <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" v-model="rev.email" placeholder="Email">
+                  </div>
                 </div>
-                <div>
-                  <span class="text-[var(--text3)] block text-xs">Manuscript File</span> 
-                  <a v-if="form.file_path" :href="baseUrl + '/' + form.file_path" target="_blank" class="text-[var(--accent)] hover:underline font-bold text-xs uppercase">View Document</a>
-                  <span v-else class="text-[var(--text3)] italic">No file attached</span>
+
+                <div v-if="currentRole !== 'editor'" v-for="(rRound, rIdx) in rev.reviewer_rounds" :key="rIdx" class="mt-4 pt-4 border-t border-[var(--border2)]">
+                  <div class="flex items-center justify-between mb-3">
+                    <h5 class="text-[11px] font-bold text-[var(--accent)] uppercase tracking-widest">Review Round {{ rRound.round_number }}</h5>
+                    <button v-if="rev.reviewer_rounds.length > 1" @click="removeReviewerRound(idx, rIdx)" class="text-red-400 hover:text-red-300 text-[10px] font-bold px-2 py-1 border border-red-900 rounded bg-red-900/20">X Round</button>
+                  </div>
+                  
+                  <div class="grid grid-cols-2 gap-4 mb-3">
+                    <div class="form-group">
+                      <label>Availability / Status</label>
+                      <select v-model="rRound.status">
+                        <option value="">-</option>
+                        <option>Pending Response</option>
+                        <option>Waiting for response</option>
+                        <option>Sent</option>
+                        <option>Available</option>
+                        <option>Declined</option>
+                        <option>Review Completed</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Date Sent</label>
+                      <input type="date" v-model="rRound.date_sent">
+                    </div>
+                  </div>
+
+
+                  <div class="grid grid-cols-2 gap-4">
+                    <div class="form-group">
+                      <label>Returned Review Document (Upload)</label>
+                      <div class="flex items-center gap-2">
+                        <input type="file" @change="handleReviewerUpload($event, idx, rIdx)" class="!w-auto flex-1 text-xs">
+                        <span v-if="rRound.file_path" class="text-[var(--accent)] font-bold text-[10px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + rRound.file_path" target="_blank">View File</a></span>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Or Review Document Link</label>
+                      <input type="url" v-model="rRound.file_link" placeholder="https://drive.google.com/...">
+                    </div>
+                  </div>
                 </div>
+
+                <button v-if="currentRole !== 'editor'" @click="addReviewerRound(idx)" class="btn-outline btn-mini w-full mt-4 !text-[10px]">+ Add Round for this Reviewer</button>
               </div>
 
-              <div v-if="form.prenotes" class="pt-3 border-t border-[var(--border)] mt-3">
-                <span class="text-[var(--text3)] block text-xs mb-1">Initial Submission Notes</span>
-                <p class="text-[var(--text)] bg-[var(--surface2)] p-3 rounded text-[13px]">{{ form.prenotes }}</p>
-              </div>
+              <button @click="addSuggestedReviewer" class="btn-outline btn-compact w-full border-dashed">+ Add Reviewer</button>
             </div>
-
-            <!-- ADDED FILE UPLOAD FOR EDITOR -->
-            <template v-if="form.review_round == 1">
-              <div class="form-group">
-                <label>Upload Reviewed / Marked-up Document (1st Review)</label>
-                <div class="flex items-center gap-4">
-                  <input type="file" @change="handleRevisedUpload" class="!w-auto flex-1">
-                  <span v-if="form.revised_file" class="text-[var(--accent)] font-bold text-[11px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + form.revised_file" target="_blank">Current Revised File</a></span>
-                </div>
-              </div>
-  
-              <div class="form-group">
-                <label>Or Add Revised Document Link (1st Review)</label>
-                <input type="url" v-model="form.revised_link" placeholder="https://drive.google.com/...">
-              </div>
-            </template>
-
-            <template v-if="form.review_round == 2">
-              <div class="form-group">
-                <label>Upload Reviewed / Marked-up Document (2nd Review)</label>
-                <div class="flex items-center gap-4">
-                  <input type="file" @change="handleRevisedUpload2" class="!w-auto flex-1">
-                  <span v-if="form.revised_file_2" class="text-[var(--accent)] font-bold text-[11px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + form.revised_file_2" target="_blank">Current 2nd Revised File</a></span>
-                </div>
-              </div>
-  
-              <div class="form-group">
-                <label>Or Add Revised Document Link (2nd Review)</label>
-                <input type="url" v-model="form.revised_link_2" placeholder="https://drive.google.com/...">
-              </div>
-            </template>
-
-            <template v-if="form.review_round >= 3">
-              <div class="form-group">
-                <label>Upload Reviewed / Marked-up Document (3rd Review)</label>
-                <div class="flex items-center gap-4">
-                  <input type="file" @change="handleRevisedUpload3" class="!w-auto flex-1">
-                  <span v-if="form.revised_file_3" class="text-[var(--accent)] font-bold text-[11px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + form.revised_file_3" target="_blank">Current 3rd Revised File</a></span>
-                </div>
-              </div>
-  
-              <div class="form-group">
-                <label>Or Add Revised Document Link (3rd Review)</label>
-                <input type="url" v-model="form.revised_link_3" placeholder="https://drive.google.com/...">
-              </div>
-            </template>
-
-            <div class="form-group full mb-4 mt-2">
-              <label>Action Taken</label>
-              <select v-model="form.action_taken">
-                <option value="">-</option>
-                <option>Sent rejection letter</option>
-                <option>Sent for review</option>
-                <option>Sent for reviewers</option>
-                <option>Sent for author revision</option>
-              </select>
-            </div>
-
-
-
-            <div class="form-group full modal-panel mb-2">
-              <div class="flex items-center justify-between mb-4">
-                <h4 class="text-[11px] font-bold text-[var(--accent)] uppercase tracking-widest">Suggested Reviewers</h4>
-                <button @click="addSuggestedReviewer" class="btn-outline btn-mini">+ Add Reviewer</button>
-              </div>
-              
-              <div v-for="(rev, idx) in suggestedReviewers" :key="idx" class="grid grid-cols-10 gap-4 mb-2 items-end">
-                <div class="form-group col-span-3">
-                  <label v-if="idx === 0">Reviewer Name</label>
-                  <input v-model="rev.name" placeholder="Name">
-                </div>
-                <div class="form-group col-span-3">
-                  <label v-if="idx === 0">Affiliation</label>
-                  <input v-model="rev.affil" placeholder="Affiliation">
-                </div>
-                <div class="form-group col-span-3">
-                  <label v-if="idx === 0">Email Address</label>
-                  <input type="email" v-model="rev.email" placeholder="Email">
-                </div>
-                <div class="form-group col-span-1 text-right pb-1">
-                  <button v-if="suggestedReviewers.length > 1" @click="removeSuggestedReviewer(idx)" class="text-red-400 hover:text-red-300 text-xs font-bold px-2 py-2 border border-red-900 rounded bg-red-900/20">X</button>
-                </div>
-              </div>
-            </div>
-
-            <div class="form-group full mt-2">
-              <label>Comments / Suggestions</label>
-              <textarea v-model="form.editor_comments" rows="3" placeholder="Enter comments or suggestions..."></textarea>
-            </div>
-            
-            <div class="form-group">
-              <label>Remarks</label>
-              <select v-model="form.editor_remarks">
-                <option value="">-</option>
-                <option>Return to author for review</option>
-                <option>Go for review</option>
-                <option>For EIC before review</option>
-                <option>Reject</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label>Prescreening Status</label>
-              <select v-model="form.prescreen_status">
-                <option value="">-</option>
-                <option>Done</option>
-                <option>Ongoing</option>
-              </select>
-            </div>
-
-
           </div>
 
         </div>
@@ -428,22 +327,17 @@ const searchQuery = ref('');
 
 const isModalOpen = ref(false);
 const editingId = ref(null);
-const selectedFile = ref(null);
-const turnitinFile = ref(null);
-const revisedFile = ref(null);
-const revisedFile2 = ref(null);
-const revisedFile3 = ref(null);
-const actionTakenFile = ref(null);
+const activeTab = ref('processing');
 
-const suggestedReviewers = ref([{ name: '', affil: '', email: '' }]);
+const turnitinFile = ref(null);
+const reviewRounds = ref([{ round_number: 1, action_taken: '' }]);
+const suggestedReviewers = ref([{ name: '', affiliation: '', email: '', reviewer_rounds: [{ round_number: 1, status: '', date_sent: '' }] }]);
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/index.php/api', '') : 'http://localhost/mjsir_tracker/backend/public';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost/mjsir_tracker/backend/public/index.php/api';
 const api = axios.create({ baseURL: API_BASE_URL });
 
-const form = ref({
-  editor_comments: '', editor_remarks: '', prescreen_status: '', action_taken: ''
-});
+const form = ref({});
 
 onMounted(async () => {
   await fetchManuscripts();
@@ -468,7 +362,6 @@ const getStatusClass = (status) => {
 };
 
 const filteredManuscripts = computed(() => {
-  // CRITICAL FILTER: Only show items explicitly assigned to the currently logged in user
   let result = manuscripts.value.filter(m => {
     if (currentRole.value === 'repo_staff') return m.repo === currentUserName.value;
     if (currentRole.value === 'editor') return m.editor === currentUserName.value;
@@ -485,48 +378,49 @@ const filteredManuscripts = computed(() => {
   return result;
 });
 
-const handleFileUpload = (event) => {
-  selectedFile.value = event.target.files[0];
-};
-
 const handleTurnitinUpload = (event) => {
   turnitinFile.value = event.target.files[0];
 };
 
-const handleRevisedUpload = (event) => {
-  revisedFile.value = event.target.files[0];
+const handleRoundRevisedUpload = (event, idx) => {
+  reviewRounds.value[idx].revisedFileObject = event.target.files[0];
 };
 
-const handleRevisedUpload2 = (event) => {
-  revisedFile2.value = event.target.files[0];
+const handleRoundActionUpload = (event, idx) => {
+  reviewRounds.value[idx].actionFileObject = event.target.files[0];
 };
 
-const handleRevisedUpload3 = (event) => {
-  revisedFile3.value = event.target.files[0];
-};
 
-const handleActionTakenUpload = (event) => {
-  actionTakenFile.value = event.target.files[0];
+const handleReviewerUpload = (event, revIdx, rIdx) => {
+  suggestedReviewers.value[revIdx].reviewer_rounds[rIdx].fileObject = event.target.files[0];
 };
 
 const openModal = (ms) => {
   editingId.value = ms.id;
-  selectedFile.value = null;
+  activeTab.value = 'processing';
   turnitinFile.value = null;
-  revisedFile.value = null;
-  revisedFile2.value = null;
-  revisedFile3.value = null;
-  actionTakenFile.value = null;
-  form.value = { review_round: 1, ...ms };
-  if (ms.suggested_reviewers) {
-    try {
-      suggestedReviewers.value = JSON.parse(ms.suggested_reviewers);
-    } catch(e) {
-      suggestedReviewers.value = [{ name: '', affil: '', email: '' }];
-    }
-  } else {
-    suggestedReviewers.value = [{ name: '', affil: '', email: '' }];
+  form.value = { ...ms };
+  if (!form.value.prescreen_status) {
+    form.value.prescreen_status = 'Ongoing';
   }
+  
+  if (ms.review_rounds && ms.review_rounds.length > 0) {
+    reviewRounds.value = JSON.parse(JSON.stringify(ms.review_rounds));
+  } else {
+    reviewRounds.value = [{ round_number: 1, action_taken: '' }];
+  }
+
+  if (ms.suggested_reviewers && ms.suggested_reviewers.length > 0) {
+    suggestedReviewers.value = JSON.parse(JSON.stringify(ms.suggested_reviewers));
+    suggestedReviewers.value.forEach(r => {
+      if (!r.reviewer_rounds || r.reviewer_rounds.length === 0) {
+        r.reviewer_rounds = [{ round_number: 1, status: '', date_sent: '' }];
+      }
+    });
+  } else {
+    suggestedReviewers.value = [{ name: '', affiliation: '', email: '', reviewer_rounds: [{ round_number: 1, status: '', date_sent: '' }] }];
+  }
+
   isModalOpen.value = true;
 };
 
@@ -535,60 +429,68 @@ const closeModal = () => {
   editingId.value = null;
 };
 
-const saveTask = async () => {
-  const round = form.value.review_round || 1;
-  
-  if (round == 1) {
-    if (!revisedFile.value && !form.value.revised_link && !form.value.revised_file) {
-      alert("Please upload a Revised Document (1st Review) or provide a link before saving.");
-      return;
-    }
-  } else if (round == 2) {
-    if (!revisedFile2.value && !form.value.revised_link_2 && !form.value.revised_file_2) {
-      alert("Please upload a Revised Document (2nd Review) or provide a link before saving.");
-      return;
-    }
-  } else if (round >= 3) {
-    if (!revisedFile3.value && !form.value.revised_link_3 && !form.value.revised_file_3) {
-      alert("Please upload a Revised Document (3rd Review) or provide a link before saving.");
-      return;
-    }
-  }
+const addRound = () => {
+  const nextRoundNum = reviewRounds.value.length > 0 
+    ? Math.max(...reviewRounds.value.map(r => r.round_number || 0)) + 1 
+    : 1;
+  reviewRounds.value.push({ round_number: nextRoundNum, action_taken: '' });
+};
 
+const removeRound = (idx) => {
+  if (reviewRounds.value.length > 1) {
+    reviewRounds.value.splice(idx, 1);
+  }
+};
+
+const addSuggestedReviewer = () => {
+  suggestedReviewers.value.push({ name: '', affiliation: '', email: '', reviewer_rounds: [{ round_number: 1, status: '', date_sent: '' }] });
+};
+
+const removeSuggestedReviewer = (idx) => {
+  suggestedReviewers.value.splice(idx, 1);
+};
+
+const addReviewerRound = (revIdx) => {
+  const rounds = suggestedReviewers.value[revIdx].reviewer_rounds;
+  const nextRoundNum = rounds.length > 0 ? Math.max(...rounds.map(r => r.round_number || 0)) + 1 : 1;
+  rounds.push({ round_number: nextRoundNum, status: '', date_sent: '' });
+};
+
+const removeReviewerRound = (revIdx, rIdx) => {
+  if (suggestedReviewers.value[revIdx].reviewer_rounds.length > 1) {
+    suggestedReviewers.value[revIdx].reviewer_rounds.splice(rIdx, 1);
+  }
+};
+
+const saveTask = async () => {
   const formData = new FormData();
   
-  form.value.suggested_reviewers = JSON.stringify(suggestedReviewers.value);
+  formData.append('review_rounds', JSON.stringify(reviewRounds.value));
+  reviewRounds.value.forEach((round, idx) => {
+    if (round.revisedFileObject) formData.append(`round_revised_file_${idx}`, round.revisedFileObject);
+    if (round.actionFileObject) formData.append(`round_action_file_${idx}`, round.actionFileObject);
+  });
+
+  formData.append('suggested_reviewers', JSON.stringify(suggestedReviewers.value));
+  suggestedReviewers.value.forEach((rev, revIdx) => {
+    if (rev.reviewer_rounds) {
+      rev.reviewer_rounds.forEach((round, rIdx) => {
+        if (round.fileObject) formData.append(`reviewer_file_${revIdx}_${rIdx}`, round.fileObject);
+        if (round.sentFileObject) formData.append(`reviewer_sent_file_${revIdx}_${rIdx}`, round.sentFileObject);
+      });
+    }
+  });
   
   for (const key in form.value) {
-    if (form.value[key] !== null && form.value[key] !== undefined) {
+    if (key !== 'suggested_reviewers' && key !== 'review_rounds' && form.value[key] !== null && form.value[key] !== undefined) {
       formData.append(key, form.value[key]);
     }
   }
 
-  if (selectedFile.value) {
-    formData.append('upload_file', selectedFile.value);
-  }
-  
   if (turnitinFile.value) {
     formData.append('turnitin_file', turnitinFile.value);
   }
   
-  if (revisedFile.value) {
-    formData.append('revised_file', revisedFile.value);
-  }
-
-  if (revisedFile2.value) {
-    formData.append('revised_file_2', revisedFile2.value);
-  }
-
-  if (revisedFile3.value) {
-    formData.append('revised_file_3', revisedFile3.value);
-  }
-
-  if (actionTakenFile.value) {
-    formData.append('action_taken_file', actionTakenFile.value);
-  }
-
   try {
     const config = { headers: { 'Content-Type': 'multipart/form-data' } };
     await api.post(`/manuscripts/${editingId.value}`, formData, config);
@@ -612,17 +514,4 @@ const saveTask = async () => {
     alert("An error occurred while saving.");
   }
 };
-
-const addSuggestedReviewer = () => {
-  suggestedReviewers.value.push({ name: '', affil: '', email: '' });
-};
-
-const removeSuggestedReviewer = (index) => {
-  if (suggestedReviewers.value.length > 1) {
-    suggestedReviewers.value.splice(index, 1);
-  }
-};
 </script>
-
-
-
