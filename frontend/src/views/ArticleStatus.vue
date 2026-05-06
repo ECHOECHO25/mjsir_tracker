@@ -209,13 +209,46 @@
               </div>
               
               <div class="form-group">
-                <label>Revised Document</label>
-                <a v-if="fullMs.revised_file" :href="baseUrl + '/' + fullMs.revised_file" target="_blank" class="flex items-center h-[38px] px-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded text-[var(--accent)] font-bold hover:bg-[var(--accent)]/20 transition-colors truncate">
+                <label>Revised Document (1st Review)</label>
+                <a v-if="fullMs.revised_link" :href="fullMs.revised_link" target="_blank" class="flex items-center h-[38px] px-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded text-[var(--accent)] font-bold hover:bg-[var(--accent)]/20 transition-colors truncate">
+                  View External Link <span class="ml-auto text-lg">↗</span>
+                </a>
+                <a v-else-if="fullMs.revised_file" :href="baseUrl + '/' + fullMs.revised_file" target="_blank" class="flex items-center h-[38px] px-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded text-[var(--accent)] font-bold hover:bg-[var(--accent)]/20 transition-colors truncate">
                   View Revised File <span class="ml-auto text-lg">↗</span>
                 </a>
                 <div v-else class="flex items-center h-[38px] px-3 bg-[var(--surface2)] border border-[var(--border)] rounded text-[13px] opacity-80 italic text-[var(--text3)]">
                   No file
                 </div>
+              </div>
+
+              <div class="form-group" v-if="fullMs.revised_file_2 || fullMs.revised_link_2">
+                <label>Revised Document (2nd Review)</label>
+                <a v-if="fullMs.revised_link_2" :href="fullMs.revised_link_2" target="_blank" class="flex items-center h-[38px] px-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded text-[var(--accent)] font-bold hover:bg-[var(--accent)]/20 transition-colors truncate">
+                  View External Link <span class="ml-auto text-lg">↗</span>
+                </a>
+                <a v-else-if="fullMs.revised_file_2" :href="baseUrl + '/' + fullMs.revised_file_2" target="_blank" class="flex items-center h-[38px] px-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded text-[var(--accent)] font-bold hover:bg-[var(--accent)]/20 transition-colors truncate">
+                  View 2nd Revised File <span class="ml-auto text-lg">↗</span>
+                </a>
+              </div>
+
+              <div class="form-group" v-if="fullMs.revised_file_3 || fullMs.revised_link_3">
+                <label>Revised Document (3rd Review)</label>
+                <a v-if="fullMs.revised_link_3" :href="fullMs.revised_link_3" target="_blank" class="flex items-center h-[38px] px-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded text-[var(--accent)] font-bold hover:bg-[var(--accent)]/20 transition-colors truncate">
+                  View External Link <span class="ml-auto text-lg">↗</span>
+                </a>
+                <a v-else-if="fullMs.revised_file_3" :href="baseUrl + '/' + fullMs.revised_file_3" target="_blank" class="flex items-center h-[38px] px-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded text-[var(--accent)] font-bold hover:bg-[var(--accent)]/20 transition-colors truncate">
+                  View 3rd Revised File <span class="ml-auto text-lg">↗</span>
+                </a>
+              </div>
+
+              <div class="form-group" v-if="fullMs.action_taken_file || fullMs.action_taken_link">
+                <label>Action Taken Document</label>
+                <a v-if="fullMs.action_taken_link" :href="fullMs.action_taken_link" target="_blank" class="flex items-center h-[38px] px-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded text-[var(--accent)] font-bold hover:bg-[var(--accent)]/20 transition-colors truncate">
+                  View External Link <span class="ml-auto text-lg">↗</span>
+                </a>
+                <a v-else-if="fullMs.action_taken_file" :href="baseUrl + '/' + fullMs.action_taken_file" target="_blank" class="flex items-center h-[38px] px-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded text-[var(--accent)] font-bold hover:bg-[var(--accent)]/20 transition-colors truncate">
+                  View Action Taken File <span class="ml-auto text-lg">↗</span>
+                </a>
               </div>
 
               <div class="form-group full" v-if="fullMs.editor_comments">

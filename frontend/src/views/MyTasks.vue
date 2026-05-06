@@ -121,13 +121,7 @@
             </div>
             
 
-            <div class="form-group full" v-if="currentRole === 'repo_staff'">
-              <label>Upload File (Turnitin / Manuscript)</label>
-              <div class="flex items-center gap-4">
-                <input type="file" @change="handleFileUpload" class="!w-auto flex-1">
-                <span v-if="form.file_path" class="text-[var(--accent)] font-bold text-[11px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + form.file_path" target="_blank">View File</a></span>
-              </div>
-            </div>
+
 
             <!-- STATUS AND REMARKS FOR REPO STAFF -->
             <div class="form-group full mt-2 pt-4 border-t border-[var(--border2)]">
@@ -172,6 +166,79 @@
               </select>
             </div>
             
+            <!-- 1ST REVIEW UPLOADS -->
+            <!-- 1ST REVIEW UPLOADS -->
+            <template v-if="form.review_round == 1">
+              <div class="form-group" v-if="currentRole === 'repo_staff'">
+                <label>Upload Revised Document (1st Review)</label>
+                <div class="flex items-center gap-4">
+                  <input type="file" @change="handleRevisedUpload" class="!w-auto flex-1">
+                  <span v-if="form.revised_file" class="text-[var(--accent)] font-bold text-[11px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + form.revised_file" target="_blank">View File</a></span>
+                </div>
+              </div>
+  
+              <div class="form-group" v-if="currentRole === 'repo_staff'">
+                <label>Or Add Revised Document Link (1st Review)</label>
+                <input type="url" v-model="form.revised_link" placeholder="https://drive.google.com/...">
+              </div>
+            </template>
+
+            <!-- 2ND REVIEW UPLOADS -->
+            <template v-if="form.review_round == 2">
+              <div class="form-group" v-if="currentRole === 'repo_staff'">
+                <label>Upload Revised Document (2nd Review)</label>
+                <div class="flex items-center gap-4">
+                  <input type="file" @change="handleRevisedUpload2" class="!w-auto flex-1">
+                  <span v-if="form.revised_file_2" class="text-[var(--accent)] font-bold text-[11px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + form.revised_file_2" target="_blank">View 2nd File</a></span>
+                </div>
+              </div>
+  
+              <div class="form-group" v-if="currentRole === 'repo_staff'">
+                <label>Or Add Revised Document Link (2nd Review)</label>
+                <input type="url" v-model="form.revised_link_2" placeholder="https://drive.google.com/...">
+              </div>
+            </template>
+
+            <!-- 3RD REVIEW UPLOADS -->
+            <template v-if="form.review_round >= 3">
+              <div class="form-group" v-if="currentRole === 'repo_staff'">
+                <label>Upload Revised Document (3rd Review)</label>
+                <div class="flex items-center gap-4">
+                  <input type="file" @change="handleRevisedUpload3" class="!w-auto flex-1">
+                  <span v-if="form.revised_file_3" class="text-[var(--accent)] font-bold text-[11px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + form.revised_file_3" target="_blank">View 3rd File</a></span>
+                </div>
+              </div>
+  
+              <div class="form-group" v-if="currentRole === 'repo_staff'">
+                <label>Or Add Revised Document Link (3rd Review)</label>
+                <input type="url" v-model="form.revised_link_3" placeholder="https://drive.google.com/...">
+              </div>
+            </template>
+            
+            <div class="form-group mt-2">
+              <label>Action Taken Document</label>
+              <div class="flex items-center gap-2">
+                <input type="file" @change="handleActionTakenUpload" class="!w-auto flex-1 text-xs">
+                <span v-if="form.action_taken_file" class="text-[var(--accent)] font-bold text-[11px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + form.action_taken_file" target="_blank">View File</a></span>
+              </div>
+            </div>
+
+            <div class="form-group mt-2">
+              <label>Or Action Taken Link</label>
+              <input type="url" v-model="form.action_taken_link" placeholder="https://drive.google.com/...">
+            </div>
+
+            <div class="form-group full mb-4">
+              <label>Action Taken</label>
+              <select v-model="form.action_taken">
+                <option value="">-</option>
+                <option>Sent rejection letter</option>
+                <option>Sent for review</option>
+                <option>Sent for reviewers</option>
+                <option>Sent for author revision</option>
+              </select>
+            </div>
+
             <div class="form-group">
               <label>Remarks</label>
               <select v-model="form.editor_remarks">
@@ -192,16 +259,7 @@
               </select>
             </div>
 
-            <div class="form-group full">
-              <label>Action Taken</label>
-              <select v-model="form.action_taken">
-                <option value="">-</option>
-                <option>Sent rejection letter</option>
-                <option>Sent for review</option>
-                <option>Sent for reviewers</option>
-                <option>Sent for author revision</option>
-              </select>
-            </div>
+
 
           </div>
 
@@ -236,13 +294,63 @@
             </div>
 
             <!-- ADDED FILE UPLOAD FOR EDITOR -->
-            <div class="form-group full mb-2">
-              <label>Upload Reviewed / Marked-up Document</label>
-              <div class="flex items-center gap-4">
-                <input type="file" @change="handleRevisedUpload" class="!w-auto flex-1">
-                <span v-if="form.revised_file" class="text-[var(--accent)] font-bold text-[11px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + form.revised_file" target="_blank">Current Revised File</a></span>
+            <template v-if="form.review_round == 1">
+              <div class="form-group">
+                <label>Upload Reviewed / Marked-up Document (1st Review)</label>
+                <div class="flex items-center gap-4">
+                  <input type="file" @change="handleRevisedUpload" class="!w-auto flex-1">
+                  <span v-if="form.revised_file" class="text-[var(--accent)] font-bold text-[11px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + form.revised_file" target="_blank">Current Revised File</a></span>
+                </div>
               </div>
+  
+              <div class="form-group">
+                <label>Or Add Revised Document Link (1st Review)</label>
+                <input type="url" v-model="form.revised_link" placeholder="https://drive.google.com/...">
+              </div>
+            </template>
+
+            <template v-if="form.review_round == 2">
+              <div class="form-group">
+                <label>Upload Reviewed / Marked-up Document (2nd Review)</label>
+                <div class="flex items-center gap-4">
+                  <input type="file" @change="handleRevisedUpload2" class="!w-auto flex-1">
+                  <span v-if="form.revised_file_2" class="text-[var(--accent)] font-bold text-[11px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + form.revised_file_2" target="_blank">Current 2nd Revised File</a></span>
+                </div>
+              </div>
+  
+              <div class="form-group">
+                <label>Or Add Revised Document Link (2nd Review)</label>
+                <input type="url" v-model="form.revised_link_2" placeholder="https://drive.google.com/...">
+              </div>
+            </template>
+
+            <template v-if="form.review_round >= 3">
+              <div class="form-group">
+                <label>Upload Reviewed / Marked-up Document (3rd Review)</label>
+                <div class="flex items-center gap-4">
+                  <input type="file" @change="handleRevisedUpload3" class="!w-auto flex-1">
+                  <span v-if="form.revised_file_3" class="text-[var(--accent)] font-bold text-[11px] uppercase whitespace-nowrap"><a :href="baseUrl + '/' + form.revised_file_3" target="_blank">Current 3rd Revised File</a></span>
+                </div>
+              </div>
+  
+              <div class="form-group">
+                <label>Or Add Revised Document Link (3rd Review)</label>
+                <input type="url" v-model="form.revised_link_3" placeholder="https://drive.google.com/...">
+              </div>
+            </template>
+
+            <div class="form-group full mb-4 mt-2">
+              <label>Action Taken</label>
+              <select v-model="form.action_taken">
+                <option value="">-</option>
+                <option>Sent rejection letter</option>
+                <option>Sent for review</option>
+                <option>Sent for reviewers</option>
+                <option>Sent for author revision</option>
+              </select>
             </div>
+
+
 
             <div class="form-group full modal-panel mb-2">
               <div class="flex items-center justify-between mb-4">
@@ -294,16 +402,7 @@
               </select>
             </div>
 
-            <div class="form-group full">
-              <label>Action Taken</label>
-              <select v-model="form.action_taken">
-                <option value="">-</option>
-                <option>Sent rejection letter</option>
-                <option>Sent for review</option>
-                <option>Sent for reviewers</option>
-                <option>Sent for author revision</option>
-              </select>
-            </div>
+
           </div>
 
         </div>
@@ -332,6 +431,9 @@ const editingId = ref(null);
 const selectedFile = ref(null);
 const turnitinFile = ref(null);
 const revisedFile = ref(null);
+const revisedFile2 = ref(null);
+const revisedFile3 = ref(null);
+const actionTakenFile = ref(null);
 
 const suggestedReviewers = ref([{ name: '', affil: '', email: '' }]);
 
@@ -395,11 +497,26 @@ const handleRevisedUpload = (event) => {
   revisedFile.value = event.target.files[0];
 };
 
+const handleRevisedUpload2 = (event) => {
+  revisedFile2.value = event.target.files[0];
+};
+
+const handleRevisedUpload3 = (event) => {
+  revisedFile3.value = event.target.files[0];
+};
+
+const handleActionTakenUpload = (event) => {
+  actionTakenFile.value = event.target.files[0];
+};
+
 const openModal = (ms) => {
   editingId.value = ms.id;
   selectedFile.value = null;
   turnitinFile.value = null;
   revisedFile.value = null;
+  revisedFile2.value = null;
+  revisedFile3.value = null;
+  actionTakenFile.value = null;
   form.value = { review_round: 1, ...ms };
   if (ms.suggested_reviewers) {
     try {
@@ -419,6 +536,25 @@ const closeModal = () => {
 };
 
 const saveTask = async () => {
+  const round = form.value.review_round || 1;
+  
+  if (round == 1) {
+    if (!revisedFile.value && !form.value.revised_link && !form.value.revised_file) {
+      alert("Please upload a Revised Document (1st Review) or provide a link before saving.");
+      return;
+    }
+  } else if (round == 2) {
+    if (!revisedFile2.value && !form.value.revised_link_2 && !form.value.revised_file_2) {
+      alert("Please upload a Revised Document (2nd Review) or provide a link before saving.");
+      return;
+    }
+  } else if (round >= 3) {
+    if (!revisedFile3.value && !form.value.revised_link_3 && !form.value.revised_file_3) {
+      alert("Please upload a Revised Document (3rd Review) or provide a link before saving.");
+      return;
+    }
+  }
+
   const formData = new FormData();
   
   form.value.suggested_reviewers = JSON.stringify(suggestedReviewers.value);
@@ -439,6 +575,18 @@ const saveTask = async () => {
   
   if (revisedFile.value) {
     formData.append('revised_file', revisedFile.value);
+  }
+
+  if (revisedFile2.value) {
+    formData.append('revised_file_2', revisedFile2.value);
+  }
+
+  if (revisedFile3.value) {
+    formData.append('revised_file_3', revisedFile3.value);
+  }
+
+  if (actionTakenFile.value) {
+    formData.append('action_taken_file', actionTakenFile.value);
   }
 
   try {

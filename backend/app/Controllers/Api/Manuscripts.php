@@ -19,7 +19,6 @@ class Manuscripts extends ResourceController {
         }
         
         $file = $this->request->getFile('upload_file');
-        // Handle revised_file upload
         $revisedFile = $this->request->getFile('revised_file');
         if ($revisedFile && $revisedFile->isValid() && !$revisedFile->hasMoved()) {
             if (!is_dir(FCPATH . 'uploads')) {
@@ -28,6 +27,36 @@ class Manuscripts extends ResourceController {
             $newName = $revisedFile->getRandomName();
             $revisedFile->move(FCPATH . 'uploads', $newName);
             $data['revised_file'] = 'uploads/' . $newName;
+        }
+
+        $revisedFile2 = $this->request->getFile('revised_file_2');
+        if ($revisedFile2 && $revisedFile2->isValid() && !$revisedFile2->hasMoved()) {
+            if (!is_dir(FCPATH . 'uploads')) {
+                mkdir(FCPATH . 'uploads', 0777, true);
+            }
+            $newName = $revisedFile2->getRandomName();
+            $revisedFile2->move(FCPATH . 'uploads', $newName);
+            $data['revised_file_2'] = 'uploads/' . $newName;
+        }
+
+        $revisedFile3 = $this->request->getFile('revised_file_3');
+        if ($revisedFile3 && $revisedFile3->isValid() && !$revisedFile3->hasMoved()) {
+            if (!is_dir(FCPATH . 'uploads')) {
+                mkdir(FCPATH . 'uploads', 0777, true);
+            }
+            $newName = $revisedFile3->getRandomName();
+            $revisedFile3->move(FCPATH . 'uploads', $newName);
+            $data['revised_file_3'] = 'uploads/' . $newName;
+        }
+
+        $actionTakenFile = $this->request->getFile('action_taken_file');
+        if ($actionTakenFile && $actionTakenFile->isValid() && !$actionTakenFile->hasMoved()) {
+            if (!is_dir(FCPATH . 'uploads')) {
+                mkdir(FCPATH . 'uploads', 0777, true);
+            }
+            $newName = $actionTakenFile->getRandomName();
+            $actionTakenFile->move(FCPATH . 'uploads', $newName);
+            $data['action_taken_file'] = 'uploads/' . $newName;
         }
 
         if ($file && $file->isValid() && !$file->hasMoved()) {

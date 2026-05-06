@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div>
     <div class="page-header">
       <div class="page-header-stack">
@@ -38,6 +38,7 @@
             </td>
             <td class="td-sub">{{ new Date(u.created_at).toLocaleDateString() }}</td>
             <td class="table-actions">
+              <button @click="editUser(u)" class="btn-outline btn-compact" v-if="u.role !== 'eic'" style="margin-right: 8px;">Edit</button>
               <button @click="deleteUser(u.id)" class="btn-outline btn-compact btn-danger-ghost" v-if="u.role !== 'eic'">Remove</button>
             </td>
           </tr>
@@ -49,7 +50,7 @@
     <div class="modal-overlay" :class="{ open: isModalOpen }">
       <div class="modal" style="width: min(96vw, 560px);">
         <div class="modal-header">
-          <h2>Add New User</h2>
+          <h2>{{ editingUserId ? 'Edit User' : 'Add New User' }}</h2>
           <button class="modal-close" @click="closeModal">X</button>
         </div>
         <div class="modal-body modal-stack">
@@ -69,13 +70,13 @@
             </select>
           </div>
           <div class="form-group">
-            <label>Initial Password</label>
+            <label>{{ editingUserId ? 'New Password (leave blank to keep current)' : 'Initial Password' }}</label>
             <input type="text" v-model="form.password" placeholder="e.g. Mjsir2026!">
           </div>
         </div>
         <div class="modal-footer">
           <button class="btn-outline" @click="closeModal">Cancel</button>
-          <button class="btn-primary" @click="saveUser">Create User</button>
+          <button class="btn-primary" @click="saveUser">{{ editingUserId ? 'Save Changes' : 'Create User' }}</button>
         </div>
       </div>
     </div>
@@ -88,6 +89,7 @@ import axios from 'axios';
 
 const users = ref([]);
 const isModalOpen = ref(false);
+const editingUserId = ref(null);
 const form = ref({ name: '', email: '', role: 'repo_staff', password: '' });
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost/mjsir_tracker/backend/public/index.php/api';
@@ -107,7 +109,14 @@ onMounted(() => {
 });
 
 const openModal = () => {
+  editingUserId.value = null;
   form.value = { name: '', email: '', role: 'repo_staff', password: '' };
+  isModalOpen.value = true;
+};
+
+const editUser = (user) => {
+  editingUserId.value = user.id;
+  form.value = { name: user.name, email: user.email, role: user.role, password: '' };
   isModalOpen.value = true;
 };
 
@@ -116,17 +125,21 @@ const closeModal = () => {
 };
 
 const saveUser = async () => {
-  if (!form.value.name || !form.value.email || !form.value.password) {
-    alert("Please fill all fields.");
+  if (!form.value.name || !form.value.email || (!editingUserId.value && !form.value.password)) {
+    alert("Please fill all required fields.");
     return;
   }
   try {
-    await api.post('/users', form.value);
+    if (editingUserId.value) {
+      await api.put(`/users/${editingUserId.value}`, form.value);
+    } else {
+      await api.post('/users', form.value);
+    }
     await fetchUsers();
     closeModal();
   } catch (err) {
     console.error(err);
-    alert("Failed to create user. Ensure the email is unique.");
+    alert("Failed to save user. Ensure the email is unique.");
   }
 };
 

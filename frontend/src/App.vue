@@ -3,7 +3,7 @@
     <div v-if="!role" class="login-shell">
       <div class="login-surface">
         <div class="login-brand">
-          <div class="login-brand-mark">M</div>
+          <img src="./assets/logo_repo.png" alt="MJSIR Logo" style="height: 48px; width: 48px; object-fit: cover; border-radius: 50%;">
           <div>
             <p class="login-brand-title">MJSIR Tracker</p>
             <p class="login-brand-subtitle">Editorial Workflow Platform</p>
@@ -49,7 +49,7 @@
       <aside class="sidebar">
         <div>
           <div class="sidebar-brand">
-            <div class="sidebar-brand-mark">M</div>
+            <img src="./assets/logo_repo.png" alt="MJSIR Logo" style="height: 40px; width: 40px; object-fit: cover; border-radius: 50%;">
             <div>
               <p class="sidebar-brand-title">MJSIR Tracker</p>
               <p class="sidebar-brand-subtitle">Research Office Workspace</p>

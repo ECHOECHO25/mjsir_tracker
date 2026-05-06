@@ -114,12 +114,45 @@
             
             <div class="form-group">
               <label>Revised Document</label>
-              <a v-if="form.revised_file" :href="baseUrl + '/' + form.revised_file" target="_blank" class="flex items-center h-[38px] px-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded text-[var(--accent)] font-bold hover:bg-[var(--accent)]/20 transition-colors truncate">
-                View Revised File <span class="ml-auto text-lg">↗</span>
-              </a>
-              <div v-else class="flex items-center h-[38px] px-3 bg-[var(--surface2)] border border-[var(--border)] rounded text-[13px] opacity-80 italic text-[var(--text3)]">
-                No file
-              </div>
+              
+              <!-- 3RD REVIEW -->
+              <template v-if="form.review_round >= 3">
+                <a v-if="form.revised_link_3" :href="form.revised_link_3" target="_blank" class="flex items-center h-[38px] px-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded text-[var(--accent)] font-bold hover:bg-[var(--accent)]/20 transition-colors truncate">
+                  View 3rd External Link <span class="ml-auto text-lg">↗</span>
+                </a>
+                <a v-else-if="form.revised_file_3" :href="baseUrl + '/' + form.revised_file_3" target="_blank" class="flex items-center h-[38px] px-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded text-[var(--accent)] font-bold hover:bg-[var(--accent)]/20 transition-colors truncate">
+                  View 3rd Revised File <span class="ml-auto text-lg">↗</span>
+                </a>
+                <div v-else class="flex items-center h-[38px] px-3 bg-[var(--surface2)] border border-[var(--border)] rounded text-[13px] opacity-80 italic text-[var(--text3)]">
+                  No 3rd file
+                </div>
+              </template>
+
+              <!-- 2ND REVIEW -->
+              <template v-else-if="form.review_round == 2">
+                <a v-if="form.revised_link_2" :href="form.revised_link_2" target="_blank" class="flex items-center h-[38px] px-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded text-[var(--accent)] font-bold hover:bg-[var(--accent)]/20 transition-colors truncate">
+                  View 2nd External Link <span class="ml-auto text-lg">↗</span>
+                </a>
+                <a v-else-if="form.revised_file_2" :href="baseUrl + '/' + form.revised_file_2" target="_blank" class="flex items-center h-[38px] px-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded text-[var(--accent)] font-bold hover:bg-[var(--accent)]/20 transition-colors truncate">
+                  View 2nd Revised File <span class="ml-auto text-lg">↗</span>
+                </a>
+                <div v-else class="flex items-center h-[38px] px-3 bg-[var(--surface2)] border border-[var(--border)] rounded text-[13px] opacity-80 italic text-[var(--text3)]">
+                  No 2nd file
+                </div>
+              </template>
+
+              <!-- 1ST REVIEW / DEFAULT -->
+              <template v-else>
+                <a v-if="form.revised_link" :href="form.revised_link" target="_blank" class="flex items-center h-[38px] px-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded text-[var(--accent)] font-bold hover:bg-[var(--accent)]/20 transition-colors truncate">
+                  View External Link <span class="ml-auto text-lg">↗</span>
+                </a>
+                <a v-else-if="form.revised_file" :href="baseUrl + '/' + form.revised_file" target="_blank" class="flex items-center h-[38px] px-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded text-[var(--accent)] font-bold hover:bg-[var(--accent)]/20 transition-colors truncate">
+                  View Revised File <span class="ml-auto text-lg">↗</span>
+                </a>
+                <div v-else class="flex items-center h-[38px] px-3 bg-[var(--surface2)] border border-[var(--border)] rounded text-[13px] opacity-80 italic text-[var(--text3)]">
+                  No file
+                </div>
+              </template>
             </div>
           </div>
 
