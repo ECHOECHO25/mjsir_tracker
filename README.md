@@ -1,3 +1,5 @@
+<div style="font-family: Arial, sans-serif; font-size: 12pt;">
+
 # MJSIR Tracker - Editorial Workflow Platform
 
 MJSIR Tracker is a comprehensive manuscript management and editorial workflow platform designed for academic and scientific journals. It streamlines the entire publication process from initial prescreening to final publication decisions.
@@ -112,3 +114,5 @@ mjsir_tracker/
     │   └── assets/            # CSS styles and images (Logos)
     └── index.html             # Main HTML entry point
 ```
+
+</div>
